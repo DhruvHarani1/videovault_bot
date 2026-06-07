@@ -1,0 +1,16 @@
+# Environment variables
+.env
+
+# SQLite Databases
+*.db
+*.sqlite3
+
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+env/

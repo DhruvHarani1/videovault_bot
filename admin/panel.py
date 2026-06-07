@@ -1,0 +1,777 @@
+from datetime import datetime, time
+from functools import wraps
+import asyncio
+import logging
+import csv
+import io
+import psutil
+
+# Track startup time when module is loaded
+bot_start_time = datetime.utcnow()
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ContextTypes, CommandHandler, CallbackQueryHandler, MessageHandler, filters, Application
+from telegram.constants import ParseMode
+from sqlalchemy import func
+from sqlalchemy.future import select
+from bot.config import settings
+from bot.models import get_db, User, Payment, PreviewSession
+from bot.services import (
+    grant_user_access,
+    revoke_user_access,
+    set_config,
+    get_preview_video_id,
+    get_full_video_id,
+    get_video_price
+)
+
+logger = logging.getLogger(__name__)
+
+def admin_only(func_to_decorate):
+    """Decorator to restrict handler access to admin users only."""
+    @wraps(func_to_decorate)
+    async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE, *args, **kwargs):
+        user = update.effective_user
+        if not user or user.id not in settings.ADMIN_USER_IDS:
+            logger.warning(f"Unauthorized admin access attempt by user {user.id if user else 'Unknown'}")
+            return  # Silently ignore unauthorized users
+        return await func_to_decorate(update, context, *args, **kwargs)
+    return wrapper
+
+@admin_only
+async def admin_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Displays the admin main menu."""
+    keyboard = [
+        [
+            InlineKeyboardButton("📊 Stats", callback_data="admin_stats"),
+            InlineKeyboardButton("👥 List Paid Users", callback_data="admin_list_paid:1")
+        ],
+        [
+            InlineKeyboardButton("📢 Broadcast Message", callback_data="admin_broadcast_init")
+        ],
+        [
+            InlineKeyboardButton("❌ Close Menu", callback_data="admin_close")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    msg_text = "🛠 *VideoVault Admin Panel*\n\nSelect an administrative action below:"
+    
+    if update.message:
+        await update.message.reply_text(msg_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
+    elif update.callback_query:
+        await update.callback_query.message.edit_text(msg_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
+
+@admin_only
+async def stats_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Queries and displays bot statistics."""
+    today_start = datetime.combine(datetime.utcnow().date(), time.min)
+
+    async with get_db() as session:
+        # Total users count
+        res_users = await session.execute(select(func.count(User.id)))
+        total_users = res_users.scalar() or 0
+
+        # Total paid users
+        res_paid = await session.execute(select(func.count(User.id)).filter(User.has_full_access == True))
+        total_paid = res_paid.scalar() or 0
+
+        # Total revenue
+        res_rev = await session.execute(select(func.sum(Payment.amount_inr)).filter(Payment.status == "paid"))
+        total_revenue = res_rev.scalar() or 0
+
+        # Previews sent today
+        res_previews = await session.execute(select(func.count(PreviewSession.id)).filter(PreviewSession.sent_at >= today_start))
+        previews_today = res_previews.scalar() or 0
+
+        # New users registered today
+        res_new_users = await session.execute(select(func.count(User.id)).filter(User.joined_at >= today_start))
+        new_users_today = res_new_users.scalar() or 0
+
+    stats_text = (
+        "📊 *Bot Statistics*\n\n"
+        f"👥 Total users: {total_users}\n"
+        f"💰 Total paid users: {total_paid}\n"
+        f"💵 Total revenue: ₹{total_revenue}\n"
+        f"🎬 Previews sent today: {previews_today}\n"
+        f"📅 New users today: {new_users_today}"
+    )
+
+    keyboard = [[InlineKeyboardButton("Back to Menu", callback_data="admin_menu")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    if update.message:
+        await update.message.reply_text(stats_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
+    elif update.callback_query:
+        await update.callback_query.message.edit_text(stats_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
+
+@admin_only
+async def grant_access_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Manually grants lifetime access to a Telegram User ID."""
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/grantaccess {telegram_id}`", parse_mode=ParseMode.MARKDOWN_V2)
+        return
+
+    try:
+        target_id = int(args[0])
+    except ValueError:
+        await update.message.reply_text("❌ Telegram ID must be an integer.")
+        return
+
+    async with get_db() as session:
+        await grant_user_access(target_id, session)
+        
+    await update.message.reply_text(f"✅ Manually granted full video access to user `{target_id}`\\.", parse_mode=ParseMode.MARKDOWN_V2)
+    logger.info(f"Admin {update.effective_user.id} manually granted access to user {target_id}")
+
+@admin_only
+async def revoke_access_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Manually revokes access from a Telegram User ID."""
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/revokeaccess {telegram_id}`", parse_mode=ParseMode.MARKDOWN_V2)
+        return
+
+    try:
+        target_id = int(args[0])
+    except ValueError:
+        await update.message.reply_text("❌ Telegram ID must be an integer.")
+        return
+
+    async with get_db() as session:
+        await revoke_user_access(target_id, session)
+        
+    await update.message.reply_text(f"✅ Manually revoked video access from user `{target_id}`\\.", parse_mode=ParseMode.MARKDOWN_V2)
+    logger.info(f"Admin {update.effective_user.id} manually revoked access from user {target_id}")
+
+@admin_only
+async def list_paid_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Command fallback for paid list."""
+    await render_paid_list(update, page=1)
+
+async def render_paid_list(update: Update, page: int) -> None:
+    """Renders a paginated view of paid users."""
+    limit = 10
+    offset = (page - 1) * limit
+
+    async with get_db() as session:
+        # Count total paid users
+        count_res = await session.execute(select(func.count(User.id)).filter(User.has_full_access == True))
+        total_count = count_res.scalar() or 0
+
+        # Query users
+        users_res = await session.execute(
+            select(User)
+            .filter(User.has_full_access == True)
+            .order_by(User.joined_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        users = users_res.scalars().all()
+
+    text = f"👥 *Paid Users \\(Page {page}\\)*\n"
+    text += f"Total paid: {total_count}\n\n"
+
+    if not users:
+        text += "No paid users found\\."
+    else:
+        for idx, u in enumerate(users, start=1 + offset):
+            first_name = (u.first_name or "N/A").replace("_", "\\_").replace("*", "\\*").replace("[", "\\[").replace("`", "\\`")
+            username = f"@{u.username}".replace("_", "\\_").replace("*", "\\*").replace("[", "\\[").replace("`", "\\`") if u.username else "N/A"
+            text += f"{idx}\\. `{u.telegram_id}` \\- {username} \\({first_name}\\)\n"
+
+    # Navigation buttons
+    keyboard = []
+    nav_row = []
+    if page > 1:
+        nav_row.append(InlineKeyboardButton("◀️ Previous", callback_data=f"admin_list_paid:{page-1}"))
+    if total_count > page * limit:
+        nav_row.append(InlineKeyboardButton("Next ▶️", callback_data=f"admin_list_paid:{page+1}"))
+    
+    if nav_row:
+        keyboard.append(nav_row)
+    keyboard.append([InlineKeyboardButton("Back to Menu", callback_data="admin_menu")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    if update.message:
+        await update.message.reply_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
+    elif update.callback_query:
+        await update.callback_query.message.edit_text(text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
+
+@admin_only
+async def broadcast_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Initiates the broadcast conversation flow."""
+    context.user_data["admin_state"] = "waiting_for_broadcast_msg"
+    await update.message.reply_text(
+        "📢 *Broadcast Mode Initiated*\n\n"
+        "Send the message (Text, Photo, or Video) you want to broadcast to users.",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+# Prompt 12: Guided Video Upload Flow
+@admin_only
+async def upload_video_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Initiates guided flow to upload preview and full video content."""
+    context.user_data["admin_state"] = "waiting_for_preview_video"
+    await update.message.reply_text(
+        "🎥 *Upload Video Flow*\n\n"
+        "Reply to this message with the **PREVIEW** video clip (maximum 3 minutes).",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
+# Prompt 12: Set video price
+@admin_only
+async def set_price_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Updates video access price."""
+    args = context.args
+    old_price = get_video_price()
+    
+    if not args:
+        await update.message.reply_text(
+            f"💰 Current access price is ₹{old_price}.\nTo update, use: `/setprice {{amount_inr}}`",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
+        
+    try:
+        new_price = int(args[0])
+        if new_price <= 0:
+            raise ValueError()
+    except ValueError:
+        await update.message.reply_text("❌ Price must be a positive integer.")
+        return
+
+    await set_config("FULL_VIDEO_PRICE_INR", str(new_price))
+    await update.message.reply_text(f"✅ Price updated to ₹{new_price} (was ₹{old_price}).")
+
+# Prompt 12: Test Preview Video
+@admin_only
+async def test_preview_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Sends current preview video to admin for testing."""
+    preview_id = get_preview_video_id()
+    await update.message.reply_text("Sending preview video... Please wait.")
+    try:
+        await context.bot.send_video(
+            chat_id=update.effective_chat.id,
+            video=preview_id,
+            caption="⏱ Test Preview Video Clip",
+            supports_streaming=True
+        )
+    except Exception as e:
+        logger.error(f"Test preview failed: {e}")
+        await update.message.reply_text(f"❌ Failed to send preview: {e}")
+
+# Prompt 12: Test Full Video
+@admin_only
+async def test_full_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Sends current full video to admin for testing."""
+    full_id = get_full_video_id()
+    await update.message.reply_text("Sending full video... Please wait.")
+    try:
+        await context.bot.send_video(
+            chat_id=update.effective_chat.id,
+            video=full_id,
+            caption="✅ Test Full Video Clip",
+            supports_streaming=True
+        )
+    except Exception as e:
+        logger.error(f"Test full video failed: {e}")
+        await update.message.reply_text(f"❌ Failed to send full video: {e}")
+
+# Prompt 13: Look up user profile details
+@admin_only
+async def user_lookup_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Looks up user details by telegram_id or username."""
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/user {telegram_id_or_username}`", parse_mode=ParseMode.MARKDOWN)
+        return
+
+    query_str = args[0].strip()
+    db_user = None
+
+    async with get_db() as session:
+        if query_str.isdigit():
+            # Lookup by telegram_id
+            tg_id = int(query_str)
+            res = await session.execute(select(User).filter(User.telegram_id == tg_id))
+            db_user = res.scalars().first()
+        else:
+            # Lookup by username (case-insensitive)
+            clean_username = query_str.lstrip("@").lower()
+            res = await session.execute(select(User).filter(func.lower(User.username) == clean_username))
+            db_user = res.scalars().first()
+
+        if not db_user:
+            await update.message.reply_text("❌ User not found.")
+            return
+
+        # Fetch preview sessions count
+        p_count_res = await session.execute(
+            select(func.count(PreviewSession.id))
+            .filter(PreviewSession.telegram_id == db_user.telegram_id)
+        )
+        previews_count = p_count_res.scalar() or 0
+
+        # Fetch latest payment status
+        pay_res = await session.execute(
+            select(Payment)
+            .filter(Payment.telegram_id == db_user.telegram_id)
+            .order_by(Payment.created_at.desc())
+        )
+        latest_payment = pay_res.scalars().first()
+        payment_status = latest_payment.status if latest_payment else "No payments initiated"
+
+    user_info = (
+        "👤 *User Info*\n\n"
+        f"ID: `{db_user.telegram_id}`\n"
+        f"Name: {db_user.first_name or 'N/A'} @{db_user.username or 'N/A'}\n"
+        f"Joined: {db_user.joined_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        f"Access: {'✅ Full Access' if db_user.has_full_access else '🔒 Preview only'}\n"
+        f"Previews watched: {previews_count}\n"
+        f"Payment status: {payment_status.upper()}"
+    )
+
+    # Inline options
+    keyboard = [
+        [
+            InlineKeyboardButton("Grant Access", callback_data=f"admin_user_op:grant:{db_user.telegram_id}"),
+            InlineKeyboardButton("Revoke Access", callback_data=f"admin_user_op:revoke:{db_user.telegram_id}")
+        ],
+        [
+            InlineKeyboardButton("💬 Send Message", callback_data=f"admin_user_op:msg:{db_user.telegram_id}")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text(user_info, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
+
+# Prompt 13: Manual Payment Recording
+@admin_only
+async def record_payment_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Manually records an offline payment and grants access."""
+    args = context.args
+    if len(args) < 2:
+        await update.message.reply_text("Usage: `/recordpayment {telegram_id} {amount} [note]`", parse_mode=ParseMode.MARKDOWN)
+        return
+
+    try:
+        target_id = int(args[0])
+        amount = int(args[1])
+    except ValueError:
+        await update.message.reply_text("❌ Telegram ID and Amount must be integers.")
+        return
+
+    note = " ".join(args[2:]) if len(args) > 2 else "Offline Payment (Manual)"
+    order_id = f"MANUAL_{int(datetime.utcnow().timestamp())}"
+
+    try:
+        async with get_db() as session:
+            # Check user exists
+            user_res = await session.execute(select(User).filter(User.telegram_id == target_id))
+            db_user = user_res.scalars().first()
+            if not db_user:
+                await update.message.reply_text("❌ User not found in database. User must /start the bot first.")
+                return
+
+            # Insert payment
+            new_payment = Payment(
+                telegram_id=target_id,
+                razorpay_order_id=order_id,
+                razorpay_payment_id=f"PAY_{order_id}",
+                amount_inr=amount,
+                status="paid",
+                paid_at=datetime.utcnow()
+            )
+            session.add(new_payment)
+            
+            # Grant access
+            await grant_user_access(target_id, session)
+
+        await update.message.reply_text(f"✅ Recorded payment of ₹{amount} for user `{target_id}`. Full access granted.")
+        
+        # Notify user
+        try:
+            await context.bot.send_message(
+                chat_id=target_id,
+                text=f"✅ Your payment of ₹{amount} has been recorded. Full access granted!"
+            )
+        except Exception as tg_err:
+            logger.error(f"Failed to notify user {target_id} of manual payment: {tg_err}")
+
+    except Exception as e:
+        logger.error(f"Manual payment recording failed: {e}", exc_info=True)
+        await update.message.reply_text("❌ Failed to record payment.")
+
+# Prompt 13: Manual Refund / Revocation
+@admin_only
+async def refund_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Revokes user access and updates latest payment to 'refunded'."""
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/refund {telegram_id}`", parse_mode=ParseMode.MARKDOWN)
+        return
+
+    try:
+        target_id = int(args[0])
+    except ValueError:
+        await update.message.reply_text("❌ Telegram ID must be an integer.")
+        return
+
+    try:
+        async with get_db() as session:
+            # Revoke access
+            await revoke_user_access(target_id, session)
+
+            # Update latest payment
+            pay_res = await session.execute(
+                select(Payment)
+                .filter(Payment.telegram_id == target_id)
+                .order_by(Payment.created_at.desc())
+            )
+            latest_pay = pay_res.scalars().first()
+            if latest_pay:
+                latest_pay.status = "refunded"
+                logger.info(f"Marked payment {latest_pay.razorpay_order_id} as refunded.")
+
+        await update.message.reply_text(f"✅ Revoked access and marked last payment as refunded for user `{target_id}`.")
+
+        # Notify user
+        try:
+            await context.bot.send_message(
+                chat_id=target_id,
+                text="Your access has been revoked. Please contact support for refund processing."
+            )
+        except Exception as tg_err:
+            logger.error(f"Failed to notify user {target_id} of refund/revocation: {tg_err}")
+
+    except Exception as e:
+        logger.error(f"Refund command execution failed: {e}", exc_info=True)
+        await update.message.reply_text("❌ Failed to execute refund operations.")
+
+# Prompt 13: CSV Users and Payments Export
+@admin_only
+async def export_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Generates a CSV of all users and payments and sends it as a document."""
+    await update.message.reply_text("⏳ Generating CSV export... Please wait.")
+    
+    try:
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow([
+            "Telegram ID", "Username", "First Name", "Joined At", 
+            "Access Status", "Access Granted At", "Latest Order ID", 
+            "Latest Payment Status", "Total Paid (INR)"
+        ])
+
+        async with get_db() as session:
+            res_users = await session.execute(select(User).order_by(User.joined_at.desc()))
+            users = res_users.scalars().all()
+
+            for u in users:
+                # Fetch payments for user
+                res_pay = await session.execute(
+                    select(Payment)
+                    .filter(Payment.telegram_id == u.telegram_id)
+                    .order_by(Payment.created_at.desc())
+                )
+                payments = res_pay.scalars().all()
+                latest_pay = payments[0] if payments else None
+                total_paid = sum(p.amount_inr for p in payments if p.status == "paid")
+
+                writer.writerow([
+                    u.telegram_id,
+                    u.username or "N/A",
+                    u.first_name or "N/A",
+                    u.joined_at.strftime("%Y-%m-%d %H:%M:%S"),
+                    "Full Access" if u.has_full_access else "Preview Only",
+                    u.access_granted_at.strftime("%Y-%m-%d %H:%M:%S") if u.access_granted_at else "N/A",
+                    latest_pay.razorpay_order_id if latest_pay else "N/A",
+                    latest_pay.status if latest_pay else "N/A",
+                    total_paid
+                ])
+
+        # Send file document
+        csv_data = bytes(output.getvalue(), "utf-8")
+        bio = io.BytesIO(csv_data)
+        bio.name = f"videovault_users_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+        
+        await context.bot.send_document(
+            chat_id=update.effective_chat.id,
+            document=bio,
+            caption="📊 Here is the complete database export containing users and their payment history."
+        )
+
+    except Exception as e:
+        logger.error(f"CSV export failed: {e}", exc_info=True)
+        await update.message.reply_text("❌ Failed to generate CSV export.")
+
+async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Intercepts messages when the admin is in broadcast, Direct Message, or Video guided upload flows."""
+    user = update.effective_user
+    if not user or user.id not in settings.ADMIN_USER_IDS:
+        return
+
+    admin_state = context.user_data.get("admin_state")
+    if not admin_state:
+        return
+
+    msg = update.message
+
+    if admin_state == "waiting_for_broadcast_msg":
+        if msg.text:
+            context.user_data["broadcast_msg"] = {"type": "text", "text": msg.text}
+        elif msg.photo:
+            context.user_data["broadcast_msg"] = {
+                "type": "photo", 
+                "photo": msg.photo[-1].file_id, 
+                "caption": msg.caption
+            }
+        elif msg.video:
+            context.user_data["broadcast_msg"] = {
+                "type": "video", 
+                "video": msg.video.file_id, 
+                "caption": msg.caption
+            }
+        else:
+            await update.message.reply_text("❌ Unsupported message type. Please send text, photo, or video.")
+            return
+
+        context.user_data["admin_state"] = "waiting_for_broadcast_target"
+        
+        keyboard = [
+            [
+                InlineKeyboardButton("All Users", callback_data="admin_bc_target:all"),
+                InlineKeyboardButton("Paid Users Only", callback_data="admin_bc_target:paid")
+            ],
+            [
+                InlineKeyboardButton("❌ Cancel Broadcast", callback_data="admin_bc_target:cancel")
+            ]
+        ]
+        await update.message.reply_text(
+            "Target Audience:\nWho should receive this broadcast?",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+
+    # Prompt 12: guided video upload flows
+    elif admin_state == "waiting_for_preview_video":
+        if msg.video:
+            file_id = msg.video.file_id
+            await set_config("PREVIEW_VIDEO_FILE_ID", file_id)
+            context.user_data["admin_state"] = "waiting_for_full_video"
+            await update.message.reply_text("✅ Preview video saved!\n\nNow, send the **FULL** premium video.")
+        else:
+            await update.message.reply_text("❌ Please reply with a valid video file.")
+
+    elif admin_state == "waiting_for_full_video":
+        if msg.video:
+            file_id = msg.video.file_id
+            await set_config("FULL_VIDEO_FILE_ID", file_id)
+            context.user_data.pop("admin_state", None)
+            await update.message.reply_text("✅ Videos updated!")
+        else:
+            await update.message.reply_text("❌ Please reply with a valid video file.")
+
+    # Prompt 13: DM message sending state
+    elif admin_state.startswith("waiting_for_admin_msg:"):
+        target_id = int(admin_state.split(":")[1])
+        if msg.text:
+            try:
+                await context.bot.send_message(
+                    chat_id=target_id,
+                    text=f"💬 *Message from Admin:*\n\n{msg.text}",
+                    parse_mode=ParseMode.MARKDOWN
+                )
+                await update.message.reply_text(f"✅ Message sent successfully to user `{target_id}`.")
+            except Exception as e:
+                logger.error(f"Failed to send direct message to {target_id}: {e}")
+                await update.message.reply_text(f"❌ Failed to send message to user: {e}")
+        else:
+            await update.message.reply_text("❌ Directly sent messages must contain text only.")
+        
+        context.user_data.pop("admin_state", None)
+
+async def admin_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handles admin panel callback queries (menus, stats, broadcasts, user operations)."""
+    query = update.callback_query
+    await query.answer()
+
+    user = query.from_user
+    if not user or user.id not in settings.ADMIN_USER_IDS:
+        logger.warning(f"Unauthorized callback query attempt from user {user.id if user else 'Unknown'}")
+        return
+
+    data = query.data
+
+    if data == "admin_menu":
+        await admin_menu_handler(update, context)
+    elif data == "admin_stats":
+        await stats_handler(update, context)
+    elif data.startswith("admin_list_paid:"):
+        page = int(data.split(":")[1])
+        await render_paid_list(update, page)
+    elif data == "admin_broadcast_init":
+        context.user_data["admin_state"] = "waiting_for_broadcast_msg"
+        await query.message.edit_text(
+            "📢 Send the message (Text, Photo, or Video) you want to broadcast to users. "
+            "Type /start or any command to exit admin flow."
+        )
+    elif data.startswith("admin_bc_target:"):
+        target = data.split(":")[1]
+        
+        if target == "cancel":
+            context.user_data.pop("admin_state", None)
+            context.user_data.pop("broadcast_msg", None)
+            await query.message.edit_text("❌ Broadcast cancelled.")
+            return
+            
+        broadcast_msg = context.user_data.get("broadcast_msg")
+        if not broadcast_msg:
+            await query.message.edit_text("❌ Error: Broadcast payload missing.")
+            return
+            
+        await query.message.edit_text("📢 Starting broadcast... Please wait.")
+        
+        # Query target users
+        async with get_db() as session:
+            if target == "paid":
+                result = await session.execute(select(User.telegram_id).filter(User.has_full_access == True))
+            else:
+                result = await session.execute(select(User.telegram_id))
+            user_ids = result.scalars().all()
+
+        success_count = 0
+        fail_count = 0
+        
+        for uid in user_ids:
+            try:
+                if broadcast_msg["type"] == "text":
+                    await context.bot.send_message(chat_id=uid, text=broadcast_msg["text"])
+                elif broadcast_msg["type"] == "photo":
+                    await context.bot.send_photo(chat_id=uid, photo=broadcast_msg["photo"], caption=broadcast_msg["caption"])
+                elif broadcast_msg["type"] == "video":
+                    await context.bot.send_video(chat_id=uid, video=broadcast_msg["video"], caption=broadcast_msg["caption"])
+                success_count += 1
+            except Exception as e:
+                logger.error(f"Failed to send broadcast to {uid}: {e}")
+                fail_count += 1
+            await asyncio.sleep(0.05)
+
+        context.user_data.pop("admin_state", None)
+        context.user_data.pop("broadcast_msg", None)
+
+        await query.message.reply_text(
+            f"✅ *Broadcast Complete*\n\n"
+            f"👥 Target: {target.upper()}\n"
+            f"📤 Successfully sent: {success_count}\n"
+            f"❌ Failed: {fail_count}",
+            parse_mode=ParseMode.MARKDOWN
+        )
+
+    # Prompt 13: Admin actions from /user lookup
+    elif data.startswith("admin_user_op:"):
+        _, op, target_id_str = data.split(":")
+        target_id = int(target_id_str)
+        
+        async with get_db() as session:
+            if op == "grant":
+                await grant_user_access(target_id, session)
+                await query.message.reply_text(f"✅ Manually granted access to user `{target_id}`.")
+                logger.info(f"Admin {user.id} manually granted access to {target_id} via User Lookup menu.")
+            elif op == "revoke":
+                await revoke_user_access(target_id, session)
+                await query.message.reply_text(f"✅ Manually revoked access from user `{target_id}`.")
+                logger.info(f"Admin {user.id} manually revoked access from {target_id} via User Lookup menu.")
+            elif op == "msg":
+                context.user_data["admin_state"] = f"waiting_for_admin_msg:{target_id}"
+                await query.message.reply_text(f"💬 Send the text message you want to deliver to user `{target_id}`.")
+
+    elif data == "admin_close":
+        await query.message.delete()
+
+@admin_only
+async def health_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Shows system health status including uptime, DB connection, scheduler, and memory."""
+    uptime = datetime.utcnow() - bot_start_time
+    days = uptime.days
+    hours, remainder = divmod(uptime.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    uptime_str = f"{days}d {hours}h {minutes}m {seconds}s"
+
+    db_status = "Disconnected ❌"
+    try:
+        async with get_db() as session:
+            await session.execute(select(1))
+            db_status = "Connected ✅"
+    except Exception as e:
+        db_status = f"Error: {str(e)} ❌"
+
+    from bot.services.scheduler import scheduler
+    scheduler_status = "Running ✅" if scheduler.running else "Stopped ❌"
+
+    try:
+        process = psutil.Process()
+        mem_info = process.memory_info()
+        rss_mb = mem_info.rss / (1024 * 1024)
+        
+        sys_mem = psutil.virtual_memory()
+        mem_str = f"Process RSS: {rss_mb:.2f} MB\nSystem Memory: {sys_mem.percent}% used ({sys_mem.used / (1024**3):.2f} GB / {sys_mem.total / (1024**3):.2f} GB)"
+    except Exception as e:
+        mem_str = f"Error retrieving memory usage: {str(e)}"
+
+    health_text = (
+        "⚙️ *VideoVault Bot Health Status*\n\n"
+        f"⏱ *Uptime:* {uptime_str}\n"
+        f"🗄 *DB Connection:* {db_status}\n"
+        f"⏰ *Scheduler:* {scheduler_status}\n\n"
+        f"📊 *Memory Usage:*\n`{mem_str}`"
+    )
+
+    await update.message.reply_text(health_text, parse_mode=ParseMode.MARKDOWN)
+
+@admin_only
+async def setcommands_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Registers the bot command menu with Telegram using setMyCommands API."""
+    from telegram import BotCommand
+    commands = [
+        BotCommand("start", "Start the bot"),
+        BotCommand("help", "How it works"),
+        BotCommand("contact", "Contact support")
+    ]
+    try:
+        await context.bot.set_my_commands(commands)
+        await update.message.reply_text("✅ Bot commands registered successfully!")
+        logger.info(f"Admin {update.effective_user.id} updated bot command list.")
+    except Exception as e:
+        logger.error(f"Failed to set bot commands: {e}")
+        await update.message.reply_text(f"❌ Failed to register bot commands: {e}")
+
+def setup_admin_handlers(app: Application) -> None:
+    """Registers all admin-panel command handlers and callback query handlers."""
+    app.add_handler(CommandHandler("admin", admin_menu_handler))
+    app.add_handler(CommandHandler("stats", stats_handler))
+    app.add_handler(CommandHandler("grantaccess", grant_access_cmd))
+    app.add_handler(CommandHandler("revokeaccess", revoke_access_cmd))
+    app.add_handler(CommandHandler("listpaid", list_paid_cmd))
+    app.add_handler(CommandHandler("broadcast", broadcast_cmd))
+    app.add_handler(CommandHandler("health", health_cmd))
+    app.add_handler(CommandHandler("setcommands", setcommands_cmd))
+    
+    # Prompt 12 commands
+    app.add_handler(CommandHandler("uploadvideo", upload_video_cmd))
+    app.add_handler(CommandHandler("setprice", set_price_cmd))
+    app.add_handler(CommandHandler("testpreview", test_preview_cmd))
+    app.add_handler(CommandHandler("testfull", test_full_cmd))
+
+    # Prompt 13 commands
+    app.add_handler(CommandHandler("user", user_lookup_cmd))
+    app.add_handler(CommandHandler("recordpayment", record_payment_cmd))
+    app.add_handler(CommandHandler("refund", refund_cmd))
+    app.add_handler(CommandHandler("export", export_cmd))
+    
+    # Callback query router for admin panel buttons
+    app.add_handler(CallbackQueryHandler(admin_callback_handler, pattern="^(admin_menu|admin_stats|admin_list_paid:|admin_broadcast_init|admin_bc_target:|admin_user_op:|admin_close)"))
+    
+    # Message receiver for broadcast, guided upload and DMs payload capturing
+    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND) | filters.PHOTO | filters.VIDEO, admin_message_receiver))
+
+
