@@ -1,0 +1,40 @@
+2026-06-08 00:55:31,511 | INFO | __main__ | Starting VideoVault Bot & Webhook Server in POLLING mode...
+2026-06-08 00:55:32,234 | INFO | __main__ | Initializing database...
+2026-06-08 00:55:32,285 | INFO | __main__ | Registering active instance ID: 757a22b4-514f-4ecb-ad2c-dadfb2d7cdd5
+2026-06-08 00:55:32,292 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '757a22b4-514f-4ecb-ad2c-dadfb2d7cdd5' to database.
+2026-06-08 00:55:32,304 | INFO | __main__ | Preloading configuration...
+2026-06-08 00:55:32,306 | INFO | bot.services.config | Preloaded 1 configuration(s) into memory cache.
+2026-06-08 00:55:32,306 | INFO | __main__ | Starting scheduler...
+2026-06-08 00:55:32,306 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-08 00:55:32,307 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-08 00:55:32,308 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-08 00:55:32,308 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-08 00:55:32,312 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-08 00:55:32,312 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-08 00:55:32,312 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-08 00:55:32,312 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-08 00:55:32,312 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-08 00:55:32,312 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-08 00:55:32,312 | INFO | __main__ | Bot is fully initialized and ready.
+2026-06-08 00:55:32,312 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-08 00:55:32,312 | INFO | telegram.ext.Application | Application started
+2026-06-08 00:55:32,533 | INFO | __main__ | Bot is polling for updates...
+2026-06-08 00:56:16,678 | INFO | bot.handlers.start | User 6138059719 (@dhruv12213) triggered /start
+2026-06-08 00:56:16,713 | INFO | bot.handlers.start | Creating new user for telegram_id: 6138059719
+2026-06-08 00:56:28,845 | INFO | bot.handlers.video | Routing callback action 'start_preview' with param 'video_001' for user 6138059719
+2026-06-08 00:56:31,461 | INFO | apscheduler.scheduler | Added job "delete_preview_message" to job store "default"
+2026-06-08 00:56:31,462 | INFO | bot.services.scheduler | Scheduled deletion of message 25 for session 1 in 180 seconds.
+2026-06-08 00:56:36,234 | INFO | bot.handlers.video | Routing callback action 'buy_access' with param 'video_001' for user 6138059719
+2026-06-08 00:56:36,881 | INFO | bot.handlers.payment | Created Razorpay order order_Syr9Buznq6itfj for user 6138059719
+2026-06-08 00:56:36,882 | INFO | bot.handlers.payment | Saved pending payment order_Syr9Buznq6itfj to DB for user 6138059719
+2026-06-08 00:56:41,768 | INFO | bot.handlers.video | Routing callback action 'check_payment' with param 'order_Syr9Buznq6itfj' for user 6138059719
+2026-06-08 00:56:41,770 | INFO | bot.handlers.payment | Verifying payment for order_id: order_Syr9Buznq6itfj, user: 6138059719
+2026-06-08 00:56:42,380 | INFO | bot.handlers.payment | Payment for order order_Syr9Buznq6itfj (user 6138059719) is still pending/unattempted.
+2026-06-08 00:59:31,473 | INFO | apscheduler.scheduler | Removed job delete_session_1
+2026-06-08 00:59:31,481 | INFO | apscheduler.executors.default | Running job "delete_preview_message (trigger: date[2026-06-08 00:59:31 IST], next run at: 2026-06-08 00:59:31 IST)" (scheduled at 2026-06-08 00:59:31.461520+05:30)
+2026-06-08 00:59:31,483 | INFO | bot.services.scheduler | Attempting to delete preview message 25 in chat 6138059719 for session 1
+2026-06-08 00:59:32,503 | INFO | bot.services.scheduler | Successfully deleted message 25 from chat 6138059719
+2026-06-08 00:59:32,508 | INFO | bot.services.scheduler | Marked preview session 1 as deleted in DB.
+2026-06-08 00:59:32,922 | INFO | apscheduler.executors.default | Job "delete_preview_message (trigger: date[2026-06-08 00:59:31 IST], next run at: 2026-06-08 00:59:31 IST)" executed successfully
+2026-06-08 01:00:32,321 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-08 01:05:32 IST)" (scheduled at 2026-06-08 01:00:32.312276+05:30)
+2026-06-08 01:00:32,322 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-08 01:05:32 IST)" executed successfully
