@@ -4,13 +4,17 @@ from logging.handlers import RotatingFileHandler
 import asyncio
 import traceback
 import uvicorn
+import uuid
 from telegram import Update
 from telegram.ext import Application, ContextTypes
 from telegram.error import NetworkError, TimedOut, Forbidden
 from sqlalchemy.future import select
 from bot.config import settings
 from bot.models import init_db, get_db, User
-from bot.services import start_scheduler, preload_config
+from bot.services import start_scheduler, preload_config, set_config
+
+INSTANCE_ID = str(uuid.uuid4())
+
 from bot.handlers import setup_handlers
 from fastapi import FastAPI, Request, HTTPException, Header
 from contextlib import asynccontextmanager
@@ -103,6 +107,9 @@ async def post_init(app_instance: Application) -> None:
     """Performs startup tasks such as database initialization and scheduler starting."""
     logger.info("Initializing database...")
     await init_db()
+
+    logger.info(f"Registering active instance ID: {INSTANCE_ID}")
+    await set_config("ACTIVE_INSTANCE_ID", INSTANCE_ID)
 
     logger.info("Preloading configuration...")
     await preload_config()
@@ -261,7 +268,26 @@ async def main_async() -> None:
         except Exception as e:
             logger.error(f"Error stopping scheduler: {e}")
             
-        # 2. Close DB connections
+        # 2. Check active instance lock in DB before closing DB connections
+        should_delete_webhook = True
+        if settings.WEBHOOK_URL:
+            try:
+                from bot.models import BotConfig, get_db
+                from sqlalchemy.future import select
+                async with get_db() as session:
+                    result = await session.execute(select(BotConfig).filter(BotConfig.key == "ACTIVE_INSTANCE_ID"))
+                    cfg = result.scalars().first()
+                    db_instance_id = cfg.value if cfg else None
+                
+                if db_instance_id and db_instance_id != INSTANCE_ID:
+                    logger.info(f"Shutdown: Current active instance in DB is '{db_instance_id}', but this instance is '{INSTANCE_ID}'. Skipping webhook deregistration.")
+                    should_delete_webhook = False
+                else:
+                    logger.info(f"Shutdown: This instance '{INSTANCE_ID}' is active or no other instance is registered. Proceeding with webhook deregistration.")
+            except Exception as e:
+                logger.error(f"Error checking active instance lock in DB during shutdown: {e}")
+
+        # 3. Close DB connections
         try:
             from bot.models.user import engine
             logger.info("Closing database connection pool...")
@@ -269,8 +295,8 @@ async def main_async() -> None:
         except Exception as e:
             logger.error(f"Error closing DB connection: {e}")
             
-        # 3. Deregister Telegram Webhook on shutdown
-        if settings.WEBHOOK_URL:
+        # 4. Deregister Telegram Webhook on shutdown
+        if settings.WEBHOOK_URL and should_delete_webhook:
             logger.info("Deregistering Telegram webhook...")
             try:
                 await application.bot.delete_webhook()
