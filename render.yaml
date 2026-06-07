@@ -1,0 +1,69 @@
+# Render Blueprint for VideoVault Telegram Bot
+# Docs: https://render.com/docs/blueprint-spec
+#
+# How to use:
+#   1. Commit this file to the root of your repo.
+#   2. In Render: New > Blueprint, connect this repo, and Apply.
+#      (Or, on your existing service: Settings > link to this Blueprint.)
+#   3. Fill in the secret values (sync: false) when prompted — they are NOT
+#      stored in git.
+#
+# NOTE ON PORT: do not set a PORT variable. Render injects $PORT automatically
+# for web services and the app already binds to it (main.py reads os.getenv("PORT")).
+
+services:
+  - type: web
+    name: videovault-bot
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter          # "starter" (or higher) is REQUIRED for the persistent disk below.
+                           # To stay on the free plan, change this to "free" AND delete the
+                           # entire "disk:" block — but note your SQLite data will then reset
+                           # on every deploy/restart.
+    region: oregon         # change to your preferred region (e.g. frankfurt, singapore)
+    healthCheckPath: /health
+    autoDeploy: true
+
+    # Persistent storage so the SQLite database survives deploys and restarts.
+    # Requires a paid plan (starter+). Remove this block if using plan: free.
+    disk:
+      name: database-storage
+      mountPath: /app/data
+      sizeGB: 1
+
+    envVars:
+      # ----- Non-secret config (committed to git) -----
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./data/videovault.db
+      - key: WEBHOOK_URL
+        value: https://videovault-bot.onrender.com   # must match your live service URL, no trailing slash
+      - key: VIDEO_PREVIEW_SECONDS
+        value: "180"
+      - key: FULL_VIDEO_PRICE_INR
+        value: "299"
+
+      # ----- Secrets (set in the Render dashboard, never committed) -----
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_USER_IDS
+        sync: false
+      - key: FULL_VIDEO_FILE_ID
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      # Telegram webhook secret. Keep this identical to the secret_token you pass
+      # to setWebhook. Leave as sync:false to set your own value in the dashboard.
+      - key: WEBHOOK_SECRET_TOKEN
+        sync: false
+
+      # ----- Optional (alerts / monitoring) — safe to leave blank -----
+      - key: ALERT_EMAIL
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: UPTIMEROBOT_ALERT_CONTACT_ID
+        sync: false
