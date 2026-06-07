@@ -103,8 +103,10 @@ async def global_error_handler(update: object, context: ContextTypes.DEFAULT_TYP
 # Global reference for application
 application = None
 
-async def post_init(app_instance: Application) -> None:
-    """Performs startup tasks such as database initialization and scheduler starting."""
+async def run_startup_tasks(app_instance: Application) -> None:
+    """DB init, config preload, and scheduler start. Called explicitly from main_async()
+    and from the FastAPI lifespan, since application.initialize() does not invoke
+    post_init in the manual-startup pattern used in polling mode."""
     logger.info("Initializing database...")
     await init_db()
 
@@ -113,22 +115,22 @@ async def post_init(app_instance: Application) -> None:
 
     logger.info("Preloading configuration...")
     await preload_config()
-    
+
     logger.info("Starting scheduler...")
     start_scheduler(app_instance.bot)
-    
+
     logger.info("Bot is fully initialized and ready.")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan manager for the FastAPI application in Webhook mode."""
     app_instance = app.state.application
-    
-    # Start bot (which automatically calls post_init via application.initialize())
+
     logger.info("Initializing and starting bot in webhook mode...")
     await app_instance.initialize()
+    await run_startup_tasks(app_instance)
     await app_instance.start()
-    
+
     # Register Telegram Webhook URL
     webhook_url = f"{settings.WEBHOOK_URL}/telegram"
     logger.info(f"Setting Telegram webhook to: {webhook_url}")
@@ -137,7 +139,7 @@ async def lifespan(app: FastAPI):
         secret_token=settings.WEBHOOK_SECRET_TOKEN,
         drop_pending_updates=True
     )
-    
+
     yield
 
 # Create FastAPI app with lifespan for Webhook Mode
@@ -207,7 +209,6 @@ async def main_async() -> None:
     application = (
         Application.builder()
         .token(settings.BOT_TOKEN)
-        .post_init(post_init)
         .build()
     )
 
@@ -253,11 +254,12 @@ async def main_async() -> None:
         else:
             # Polling Mode (for local dev)
             logger.info("Starting VideoVault Bot & Webhook Server in POLLING mode...")
-            
+
             # Initialize and start bot polling in the background
             await application.initialize()
+            await run_startup_tasks(application)
             await application.start()
-            await application.updater.start_polling()
+            await application.updater.start_polling(drop_pending_updates=True)
             logger.info("Bot is polling for updates...")
 
             # Configure Uvicorn server for Razorpay webhook only
