@@ -148,10 +148,15 @@ from bot.webhook_server import app as razorpay_app
 webhook_app.mount("/razorpay-webhook", razorpay_app)
 
 @webhook_app.post("/telegram")
-async def telegram_webhook(request: Request, x_telegram_bot_api_secret_token: str = Header(None)):
+async def telegram_webhook(request: Request):
     """Receives and processes incoming Telegram updates in Webhook mode."""
+    x_telegram_bot_api_secret_token = request.headers.get("x-telegram-bot-api-secret-token")
     if x_telegram_bot_api_secret_token != settings.WEBHOOK_SECRET_TOKEN:
-        logger.warning("Unauthorized webhook request: invalid secret token")
+        logger.warning(
+            f"Unauthorized webhook request: invalid secret token. "
+            f"Received: '{x_telegram_bot_api_secret_token}', "
+            f"Expected: '{settings.WEBHOOK_SECRET_TOKEN}'"
+        )
         raise HTTPException(status_code=403, detail="Forbidden")
         
     try:
