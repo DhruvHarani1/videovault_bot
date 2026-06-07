@@ -283,42 +283,22 @@ async def main_async() -> None:
         except Exception as e:
             logger.error(f"Error stopping scheduler: {e}")
             
-        # 2. Check active instance lock in DB before closing DB connections
-        should_delete_webhook = True
-        if settings.WEBHOOK_URL:
-            try:
-                from bot.models import BotConfig, get_db
-                from sqlalchemy.future import select
-                async with get_db() as session:
-                    result = await session.execute(select(BotConfig).filter(BotConfig.key == "ACTIVE_INSTANCE_ID"))
-                    cfg = result.scalars().first()
-                    db_instance_id = cfg.value if cfg else None
-                
-                if db_instance_id and db_instance_id != INSTANCE_ID:
-                    logger.info(f"Shutdown: Current active instance in DB is '{db_instance_id}', but this instance is '{INSTANCE_ID}'. Skipping webhook deregistration.")
-                    should_delete_webhook = False
-                else:
-                    logger.info(f"Shutdown: This instance '{INSTANCE_ID}' is active or no other instance is registered. Proceeding with webhook deregistration.")
-            except Exception as e:
-                logger.error(f"Error checking active instance lock in DB during shutdown: {e}")
-
-        # 3. Close DB connections
+        # 2. Close DB connections
         try:
             from bot.models.user import engine
             logger.info("Closing database connection pool...")
             await engine.dispose()
         except Exception as e:
             logger.error(f"Error closing DB connection: {e}")
-            
-        # 4. Deregister Telegram Webhook on shutdown
-        if settings.WEBHOOK_URL and should_delete_webhook:
-            logger.info("Deregistering Telegram webhook...")
-            try:
-                await application.bot.delete_webhook()
-                logger.info("Telegram webhook successfully deregistered.")
-            except Exception as e:
-                logger.error(f"Failed to delete Telegram webhook: {e}")
-                
+
+        # NOTE: We intentionally DO NOT delete the Telegram webhook on shutdown.
+        # On Render the container is stopped/restarted on every deploy and (on the
+        # free tier) whenever it wakes from idle. Deleting the webhook here would
+        # leave Telegram with nowhere to deliver updates after a restart, so the
+        # bot would silently stop responding to /start and everything else.
+        # The webhook is (re)registered idempotently on startup in lifespan().
+        # To remove it manually, use the DELETE /telegram-webhook admin endpoint.
+
         # Stop PTB application
         logger.info("Stopping bot application...")
         try:
