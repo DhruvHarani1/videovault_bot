@@ -220,6 +220,11 @@ async def main_async() -> None:
     # Share application instance with webhook_app
     webhook_app.state.application = application
 
+    # Render (and most PaaS hosts) inject the port to bind via the PORT env var.
+    # The web service MUST listen on this port or all inbound traffic — including
+    # Telegram webhook deliveries — never reaches the app.
+    port = int(os.getenv("PORT", "8443"))
+
     server = None
     try:
         if settings.WEBHOOK_URL:
@@ -240,7 +245,7 @@ async def main_async() -> None:
             config = uvicorn.Config(
                 app=webhook_app,
                 host="0.0.0.0",
-                port=8443,
+                port=port,
                 log_level="info"
             )
             server = uvicorn.Server(config)
@@ -259,7 +264,7 @@ async def main_async() -> None:
             config = uvicorn.Config(
                 app="bot.webhook_server:app",
                 host="0.0.0.0",
-                port=8000,
+                port=port,
                 log_level="info"
             )
             server = uvicorn.Server(config)
@@ -325,6 +330,7 @@ async def main_async() -> None:
             logger.error(f"Error during bot application shutdown: {e}")
             
         logger.info("Graceful shutdown complete.")
+
 
 def main() -> None:
     """Entry point using asyncio event loop."""
