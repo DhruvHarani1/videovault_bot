@@ -77,7 +77,7 @@ class BotConfig(Base):
         return f"<BotConfig key={self.key} value={self.value}>"
 
 # Create async engine and sessionmaker
-engine = create_async_engine(settings.DATABASE_URL, echo=True)
+engine = create_async_engine(settings.DATABASE_URL, echo=False)
 AsyncSessionLocal = async_sessionmaker(
     engine, expire_on_commit=False
 )
