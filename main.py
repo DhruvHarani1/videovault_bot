@@ -165,6 +165,11 @@ async def telegram_webhook(request: Request, x_telegram_bot_api_secret_token: st
         
     return {"status": "ok"}
 
+@webhook_app.get("/")
+async def root_check():
+    """Root endpoint to satisfy Render's default health check."""
+    return {"status": "ok"}
+
 @webhook_app.get("/health")
 async def health_check():
     """Health check endpoint for Docker container health check."""
