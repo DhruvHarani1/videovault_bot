@@ -726,6 +726,17 @@ async def restore_plan_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 @admin_only
+async def set_qr_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Set the payment QR/UPI image shown by the Payment bot. Send a photo after."""
+    context.user_data["admin_state"] = "setqr_waiting_image"
+    await update.message.reply_text(
+        "💳 Send the **payment QR / UPI image** now (as a photo).\n"
+        "It will be shown to users on the payment screen. /canceladmin to abort.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
 async def set_plan_preview_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Set a plan's demo preview clip. Usage: /setplanpreview <plan_id>, then send a video."""
     args = context.args
@@ -1071,6 +1082,20 @@ async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_T
             context.user_data.pop("admin_state", None)
             context.user_data.pop("new_plan", None)
 
+    # ────────── Phase 5: /setqr capture ──────────
+    elif admin_state == "setqr_waiting_image":
+        file_id = None
+        if msg.photo:
+            file_id = msg.photo[-1].file_id
+        elif msg.document and (msg.document.mime_type or "").startswith("image/"):
+            file_id = msg.document.file_id
+        if not file_id:
+            await update.message.reply_text("❌ Please send an image (photo) of the QR.")
+            return
+        await set_config("PAYMENT_QR_FILE_ID", file_id)
+        context.user_data.pop("admin_state", None)
+        await update.message.reply_text("✅ Payment QR image saved. Users will now see it on the payment screen.")
+
     # ────────── Phase 4: /setplanpreview capture ──────────
     elif admin_state == "setplanpreview_waiting_video":
         if msg.video:
@@ -1333,6 +1358,7 @@ def setup_admin_handlers(app: Application) -> None:
     app.add_handler(CommandHandler("setplanpreview", set_plan_preview_cmd))
     app.add_handler(CommandHandler("removeplan", remove_plan_cmd))
     app.add_handler(CommandHandler("restoreplan", restore_plan_cmd))
+    app.add_handler(CommandHandler("setqr", set_qr_cmd))
     app.add_handler(CommandHandler("addcontent", add_content_cmd))
     app.add_handler(CommandHandler("donecontent", done_content_cmd))
     app.add_handler(CommandHandler("listcontent", list_content_cmd))

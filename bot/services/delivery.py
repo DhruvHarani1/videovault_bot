@@ -7,7 +7,10 @@ for legacy items that predate the storage channel (e.g. the sample-video URL).
 import logging
 from typing import Optional
 
+from sqlalchemy.future import select
+
 from bot.config import settings
+from bot.models import get_db, Delivery
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +79,28 @@ async def deliver_plan_preview(bot, chat_id: int, plan, caption: Optional[str] =
     if getattr(plan, "preview_file_id", None):
         return await send_by_file_id(bot, chat_id, plan.preview_file_id, media_type="video", caption=caption, protect=protect)
     return None
+
+
+async def already_delivered_ids(telegram_id: int) -> set:
+    """All content_ids already delivered to this user (across plans) — for resume."""
+    async with get_db() as session:
+        result = await session.execute(
+            select(Delivery.content_id).filter(Delivery.telegram_id == telegram_id)
+        )
+        return set(result.scalars().all())
+
+
+async def record_delivery(telegram_id: int, content_id: str, plan_id: str) -> None:
+    """Record (idempotently) that a content item was delivered to a user."""
+    async with get_db() as session:
+        existing = await session.execute(
+            select(Delivery).filter(
+                Delivery.telegram_id == telegram_id,
+                Delivery.content_id == content_id,
+            )
+        )
+        if existing.scalars().first() is None:
+            session.add(Delivery(telegram_id=telegram_id, content_id=content_id, plan_id=plan_id))
 
 
 async def store_media_in_channel(bot, from_chat_id: int, message_id: int) -> Optional[int]:

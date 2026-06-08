@@ -1811,3 +1811,586 @@ telegram.error.NetworkError: httpx.ReadError:
 2026-06-09 01:59:20,552 | INFO | bot.bots.demo | Demo /start payload: 'plan_003'
 2026-06-09 01:59:21,188 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
 2026-06-09 01:59:21,188 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 1146010950 (plan plan_003) in 200s.
+2026-06-09 02:00:46,174 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:05:46 IST)" (scheduled at 2026-06-09 02:00:46.169189+05:30)
+2026-06-09 02:00:46,174 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:05:46 IST)" executed successfully
+2026-06-09 02:02:41,193 | INFO | apscheduler.scheduler | Removed job demo_expire_1146010950_25
+2026-06-09 02:02:41,194 | INFO | apscheduler.executors.default | Running job "delete_demo_message (trigger: date[2026-06-09 02:02:41 IST], next run at: 2026-06-09 02:02:41 IST)" (scheduled at 2026-06-09 02:02:41.188199+05:30)
+2026-06-09 02:02:42,188 | INFO | apscheduler.executors.default | Job "delete_demo_message (trigger: date[2026-06-09 02:02:41 IST], next run at: 2026-06-09 02:02:41 IST)" executed successfully
+2026-06-09 02:03:57,424 | INFO | bot.bots.demo | Demo /start payload: 'plan_003'
+2026-06-09 02:03:58,051 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
+2026-06-09 02:03:58,051 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 1146010950 (plan plan_003) in 200s.
+2026-06-09 02:06:47,986 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 02:07:24,320 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 02:07:25,697 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 02:07:26,347 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 02:07:27,000 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 02:07:27,660 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 02:07:27,660 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 02:07:27,660 | INFO | __main__ | Initializing database...
+2026-06-09 02:07:27,676 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 02:07:27,685 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 02:07:27,699 | INFO | __main__ | Registering active instance ID: ba6b1055-aa84-4e0e-9839-a674bb075826
+2026-06-09 02:07:27,700 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = 'ba6b1055-aa84-4e0e-9839-a674bb075826' to database.
+2026-06-09 02:07:27,711 | INFO | __main__ | Preloading configuration...
+2026-06-09 02:07:27,713 | INFO | bot.services.config | Preloaded 1 configuration(s) into memory cache.
+2026-06-09 02:07:28,188 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 02:07:28,188 | INFO | telegram.ext.Application | Application started
+2026-06-09 02:07:28,338 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 02:07:28,760 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 02:07:28,760 | INFO | telegram.ext.Application | Application started
+2026-06-09 02:07:28,899 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 02:07:29,331 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 02:07:29,332 | INFO | telegram.ext.Application | Application started
+2026-06-09 02:07:29,476 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 02:07:29,908 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 02:07:29,908 | INFO | telegram.ext.Application | Application started
+2026-06-09 02:07:30,053 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 02:07:30,053 | INFO | __main__ | Starting scheduler...
+2026-06-09 02:07:30,053 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 02:07:30,053 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 02:07:30,055 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 02:07:30,055 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 02:07:30,058 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 02:07:30,058 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 02:07:30,058 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 02:07:30,059 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 02:07:30,059 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 02:07:30,059 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 02:12:30,068 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:17:30 IST)" (scheduled at 2026-06-09 02:12:30.058803+05:30)
+2026-06-09 02:12:30,069 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:17:30 IST)" executed successfully
+2026-06-09 02:17:30,075 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:22:30 IST)" (scheduled at 2026-06-09 02:17:30.058803+05:30)
+2026-06-09 02:17:30,075 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:22:30 IST)" executed successfully
+2026-06-09 02:22:30,071 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:27:30 IST)" (scheduled at 2026-06-09 02:22:30.058803+05:30)
+2026-06-09 02:22:30,071 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:27:30 IST)" executed successfully
+2026-06-09 02:27:30,066 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:32:30 IST)" (scheduled at 2026-06-09 02:27:30.058803+05:30)
+2026-06-09 02:27:30,067 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:32:30 IST)" executed successfully
+2026-06-09 02:32:30,066 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:37:30 IST)" (scheduled at 2026-06-09 02:32:30.058803+05:30)
+2026-06-09 02:32:30,067 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:37:30 IST)" executed successfully
+2026-06-09 02:37:30,060 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:42:30 IST)" (scheduled at 2026-06-09 02:37:30.058803+05:30)
+2026-06-09 02:37:32,943 | INFO | bot.services.email | Email sent: '🚨 Bot Inactivity Alert!' → 1 recipient(s).
+2026-06-09 02:37:32,944 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:42:30 IST)" executed successfully
+2026-06-09 02:45:03,665 | WARNING | apscheduler.executors.default | Run time of job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:47:30 IST)" was missed by 0:02:33.606436
+2026-06-09 02:47:30,072 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:52:30 IST)" (scheduled at 2026-06-09 02:47:30.058803+05:30)
+2026-06-09 02:47:30,072 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:52:30 IST)" executed successfully
+2026-06-09 02:52:30,066 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:57:30 IST)" (scheduled at 2026-06-09 02:52:30.058803+05:30)
+2026-06-09 02:52:30,067 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 02:57:30 IST)" executed successfully
+2026-06-09 02:57:30,064 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:02:30 IST)" (scheduled at 2026-06-09 02:57:30.058803+05:30)
+2026-06-09 02:57:30,065 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:02:30 IST)" executed successfully
+2026-06-09 03:02:30,065 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:07:30 IST)" (scheduled at 2026-06-09 03:02:30.058803+05:30)
+2026-06-09 03:02:30,065 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:07:30 IST)" executed successfully
+2026-06-09 03:07:30,074 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:12:30 IST)" (scheduled at 2026-06-09 03:07:30.058803+05:30)
+2026-06-09 03:07:30,074 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:12:30 IST)" executed successfully
+2026-06-09 03:07:30,074 | INFO | apscheduler.executors.default | Running job "check_db_size_alert (trigger: interval[1:00:00], next run at: 2026-06-09 04:07:30 IST)" (scheduled at 2026-06-09 03:07:30.059051+05:30)
+2026-06-09 03:07:30,077 | INFO | apscheduler.executors.default | Job "check_db_size_alert (trigger: interval[1:00:00], next run at: 2026-06-09 04:07:30 IST)" executed successfully
+2026-06-09 03:12:30,060 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:17:30 IST)" (scheduled at 2026-06-09 03:12:30.058803+05:30)
+2026-06-09 03:12:30,061 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:17:30 IST)" executed successfully
+2026-06-09 03:17:30,067 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:22:30 IST)" (scheduled at 2026-06-09 03:17:30.058803+05:30)
+2026-06-09 03:17:30,068 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:22:30 IST)" executed successfully
+2026-06-09 03:22:30,059 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:27:30 IST)" (scheduled at 2026-06-09 03:22:30.058803+05:30)
+2026-06-09 03:22:30,060 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:27:30 IST)" executed successfully
+2026-06-09 03:22:50,068 | ERROR | telegram.ext.Updater | Exception happened while polling for updates.
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        pool_request.request
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 136, in handle_async_request
+    raise exc
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.READ_NUM_BYTES, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 279, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 161, in network_retry_loop
+    await do_action()
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 154, in do_action
+    action_cb_task.result()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_updater.py", line 340, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 672, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 4865, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 704, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 370, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 733, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 198, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 305, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 303, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ReadError: 
+2026-06-09 03:22:50,128 | ERROR | telegram.ext.Updater | Exception happened while polling for updates.
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        pool_request.request
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 136, in handle_async_request
+    raise exc
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.READ_NUM_BYTES, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 279, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 161, in network_retry_loop
+    await do_action()
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 154, in do_action
+    action_cb_task.result()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_updater.py", line 340, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 672, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 4865, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 704, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 370, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 733, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 198, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 305, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 303, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ReadError: 
+2026-06-09 03:22:50,134 | ERROR | telegram.ext.Updater | Exception happened while polling for updates.
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        pool_request.request
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 136, in handle_async_request
+    raise exc
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.READ_NUM_BYTES, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 279, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 161, in network_retry_loop
+    await do_action()
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 154, in do_action
+    action_cb_task.result()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_updater.py", line 340, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 672, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 4865, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 704, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 370, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 733, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 198, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 305, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 303, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ReadError: 
+2026-06-09 03:27:30,061 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:32:30 IST)" (scheduled at 2026-06-09 03:27:30.058803+05:30)
+2026-06-09 03:27:30,061 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:32:30 IST)" executed successfully
+2026-06-09 03:32:30,068 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:37:30 IST)" (scheduled at 2026-06-09 03:32:30.058803+05:30)
+2026-06-09 03:32:30,069 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:37:30 IST)" executed successfully
+2026-06-09 03:37:30,076 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:42:30 IST)" (scheduled at 2026-06-09 03:37:30.058803+05:30)
+2026-06-09 03:37:30,077 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:42:30 IST)" executed successfully
+2026-06-09 03:38:10,290 | INFO | bot.services.config | Saved config key 'PAYMENT_QR_FILE_ID' = 'AgACAgUAAxkBAAIBemonPUm7i7ln0T55qz_iL9cVpYFOAAJhDmsbS5ZAVYWbmbyazWSIAQADAgADeAADOwQ' to database.
+2026-06-09 03:38:57,971 | INFO | bot.services.tickets | Created payment ticket #1 for user 1146010950, plan plan_003.
+2026-06-09 03:39:03,936 | INFO | bot.services.email | Email sent: '🧾 New payment proof — Ticket #1 (Premium, ₹100)' → 1 recipient(s).
+2026-06-09 03:39:14,990 | INFO | bot.services.tickets | Ticket #1 -> approved by 1146010950.
+2026-06-09 03:39:15,006 | INFO | bot.services.access | Granted user 1146010950 access to plan plan_003.
+2026-06-09 03:39:18,366 | INFO | bot.services.email | Email sent: '✅ Payment approved — Ticket #1 (Premium)' → 1 recipient(s).
+2026-06-09 03:39:22,074 | INFO | bot.services.sessions | Recorded first 'file' start for user 1146010950.
+2026-06-09 03:39:22,134 | INFO | bot.bots.fileshare | File /start payload from user 1146010950: 'plan_003'
+2026-06-09 03:41:58,953 | INFO | bot.services.config | Saved config key 'PAYMENT_QR_FILE_ID' = 'AgACAgUAAxkBAAIBemonPUm7i7ln0T55qz_iL9cVpYFOAAJhDmsbS5ZAVYWbmbyazWSIAQADAgADeAADOwQ' to database.
+2026-06-09 03:44:48,514 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 03:45:27,254 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 03:45:28,591 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 03:45:29,236 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 03:45:29,882 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 03:45:30,533 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 03:45:30,534 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 03:45:30,534 | INFO | __main__ | Initializing database...
+2026-06-09 03:45:30,556 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 03:45:30,566 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 03:45:30,580 | INFO | __main__ | Registering active instance ID: 21da5f7e-bfed-4bc8-9345-a59917d1cd04
+2026-06-09 03:45:30,582 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '21da5f7e-bfed-4bc8-9345-a59917d1cd04' to database.
+2026-06-09 03:45:30,591 | INFO | __main__ | Preloading configuration...
+2026-06-09 03:45:30,593 | INFO | bot.services.config | Preloaded 2 configuration(s) into memory cache.
+2026-06-09 03:45:31,044 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 03:45:31,044 | INFO | telegram.ext.Application | Application started
+2026-06-09 03:45:31,196 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 03:45:31,649 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 03:45:31,649 | INFO | telegram.ext.Application | Application started
+2026-06-09 03:45:31,795 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 03:45:32,253 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 03:45:32,254 | INFO | telegram.ext.Application | Application started
+2026-06-09 03:45:32,406 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 03:45:32,856 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 03:45:32,857 | INFO | telegram.ext.Application | Application started
+2026-06-09 03:45:33,007 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 03:45:33,007 | INFO | __main__ | Starting scheduler...
+2026-06-09 03:45:33,008 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 03:45:33,008 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 03:45:33,010 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 03:45:33,011 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 03:45:33,017 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 03:45:33,017 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 03:45:33,017 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 03:45:33,017 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 03:45:33,017 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 03:45:33,017 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 03:47:26,219 | INFO | bot.services.sessions | Recorded first 'file' start for user 6138059719.
+2026-06-09 03:47:34,012 | INFO | bot.services.sessions | Recorded first 'sales' start for user 6138059719.
+2026-06-09 03:47:44,163 | INFO | bot.services.sessions | Recorded first 'demo' start for user 6138059719.
+2026-06-09 03:47:44,176 | INFO | bot.bots.demo | Demo /start payload: 'plan_001'
+2026-06-09 03:47:44,845 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
+2026-06-09 03:47:44,845 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 6138059719 (plan plan_001) in 200s.
+2026-06-09 03:47:50,901 | INFO | bot.services.sessions | Recorded first 'payment' start for user 6138059719.
+2026-06-09 03:48:13,808 | INFO | bot.services.tickets | Created payment ticket #2 for user 6138059719, plan plan_001.
+2026-06-09 03:48:19,981 | INFO | bot.services.email | Email sent: '🧾 New payment proof — Ticket #2 (Starter, ₹20)' → 1 recipient(s).
+2026-06-09 03:48:23,314 | INFO | bot.services.tickets | Ticket #2 -> rejected by 1146010950.
+2026-06-09 03:48:26,647 | INFO | bot.services.email | Email sent: '❌ Payment rejected — Ticket #2 (Starter)' → 1 recipient(s).
+2026-06-09 03:48:55,635 | INFO | bot.services.tickets | Created payment ticket #3 for user 6138059719, plan plan_001.
+2026-06-09 03:49:00,409 | INFO | bot.services.email | Email sent: '🧾 New payment proof — Ticket #3 (Starter, ₹20)' → 1 recipient(s).
+2026-06-09 03:49:00,721 | INFO | bot.services.tickets | Ticket #3 -> rejected by 1146010950.
+2026-06-09 03:49:03,808 | INFO | bot.services.email | Email sent: '❌ Payment rejected — Ticket #3 (Starter)' → 1 recipient(s).
+2026-06-09 03:49:31,393 | INFO | bot.services.tickets | Created payment ticket #4 for user 6138059719, plan plan_001.
+2026-06-09 03:49:36,301 | INFO | bot.services.email | Email sent: '🧾 New payment proof — Ticket #4 (Starter, ₹20)' → 1 recipient(s).
+2026-06-09 03:49:36,631 | INFO | bot.services.tickets | Ticket #4 -> approved by 1146010950.
+2026-06-09 03:49:36,644 | INFO | bot.services.access | Granted user 6138059719 access to plan plan_001.
+2026-06-09 03:49:39,840 | INFO | bot.services.email | Email sent: '✅ Payment approved — Ticket #4 (Starter)' → 1 recipient(s).
+2026-06-09 03:50:33,024 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:55:33 IST)" (scheduled at 2026-06-09 03:50:33.017474+05:30)
+2026-06-09 03:50:33,024 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 03:55:33 IST)" executed successfully
+2026-06-09 03:51:04,848 | INFO | apscheduler.scheduler | Removed job demo_expire_6138059719_30
+2026-06-09 03:51:04,848 | INFO | apscheduler.executors.default | Running job "delete_demo_message (trigger: date[2026-06-09 03:51:04 IST], next run at: 2026-06-09 03:51:04 IST)" (scheduled at 2026-06-09 03:51:04.844889+05:30)
+2026-06-09 03:51:05,847 | INFO | apscheduler.executors.default | Job "delete_demo_message (trigger: date[2026-06-09 03:51:04 IST], next run at: 2026-06-09 03:51:04 IST)" executed successfully
