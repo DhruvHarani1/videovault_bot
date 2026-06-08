@@ -933,3 +933,91 @@ telegram.error.Conflict: Conflict: can't use getUpdates method while webhook is 
 2026-06-09 00:07:59,563 | INFO | __main__ | Stopping bot application...
 2026-06-09 00:07:59,563 | ERROR | __main__ | Error during bot application shutdown: This Updater is not running!
 2026-06-09 00:07:59,563 | INFO | __main__ | Graceful shutdown complete.
+2026-06-09 00:45:55,358 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 00:45:55,990 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 00:45:56,629 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 00:45:57,267 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 00:46:09,767 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 00:46:10,400 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 00:46:11,021 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 00:46:11,645 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 00:46:11,646 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 00:46:11,646 | INFO | __main__ | Initializing database...
+2026-06-09 00:46:11,658 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 00:46:11,667 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 00:46:11,672 | INFO | __main__ | Termination received. Starting graceful shutdown...
+2026-06-09 00:46:11,673 | ERROR | __main__ | Error during 'sales' bot shutdown: This Application is not running!
+2026-06-09 00:46:11,673 | ERROR | __main__ | Error during 'demo' bot shutdown: This Application is not running!
+2026-06-09 00:46:11,673 | ERROR | __main__ | Error during 'payment' bot shutdown: This Application is not running!
+2026-06-09 00:46:11,673 | ERROR | __main__ | Error during 'file' bot shutdown: This Application is not running!
+2026-06-09 00:46:11,673 | INFO | __main__ | Closing database connection pool...
+2026-06-09 00:46:11,674 | INFO | __main__ | Graceful shutdown complete.
+2026-06-09 00:47:04,028 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 00:47:04,651 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 00:47:05,275 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 00:47:05,906 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 00:47:05,906 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 00:47:05,906 | INFO | __main__ | Initializing database...
+2026-06-09 00:47:05,917 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 00:47:05,925 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 00:47:05,938 | INFO | __main__ | Registering active instance ID: 78983394-aaf1-4e46-aa19-60b814769ab7
+2026-06-09 00:47:05,942 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '78983394-aaf1-4e46-aa19-60b814769ab7' to database.
+2026-06-09 00:47:05,951 | INFO | __main__ | Preloading configuration...
+2026-06-09 00:47:05,953 | INFO | bot.services.config | Preloaded 1 configuration(s) into memory cache.
+2026-06-09 00:47:09,938 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:47:09,939 | INFO | telegram.ext.Application | Application started
+2026-06-09 00:47:10,088 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 00:47:14,229 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:47:14,229 | INFO | telegram.ext.Application | Application started
+2026-06-09 00:47:14,481 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 00:47:15,213 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:47:15,214 | INFO | telegram.ext.Application | Application started
+2026-06-09 00:47:15,406 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 00:47:32,837 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 00:47:33,458 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 00:47:34,085 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 00:47:34,709 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 00:47:34,709 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 00:47:34,709 | INFO | __main__ | Initializing database...
+2026-06-09 00:47:34,721 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 00:47:34,731 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 00:47:34,745 | INFO | __main__ | Registering active instance ID: 35eb7417-c439-42ca-984f-4bd6bf645bb0
+2026-06-09 00:47:34,749 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '35eb7417-c439-42ca-984f-4bd6bf645bb0' to database.
+2026-06-09 00:47:34,757 | INFO | __main__ | Preloading configuration...
+2026-06-09 00:47:34,759 | INFO | bot.services.config | Preloaded 1 configuration(s) into memory cache.
+2026-06-09 00:47:35,411 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:47:35,412 | INFO | telegram.ext.Application | Application started
+2026-06-09 00:47:35,674 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 00:47:36,098 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:47:36,099 | INFO | telegram.ext.Application | Application started
+2026-06-09 00:47:36,243 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 00:47:36,703 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:47:36,703 | INFO | telegram.ext.Application | Application started
+2026-06-09 00:47:36,856 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 00:47:37,306 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:47:37,306 | INFO | telegram.ext.Application | Application started
+2026-06-09 00:47:37,454 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 00:47:37,454 | INFO | __main__ | Starting scheduler...
+2026-06-09 00:47:37,454 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:47:37,454 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 00:47:37,456 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 00:47:37,456 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 00:47:37,460 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 00:47:37,460 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 00:47:37,460 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 00:47:37,460 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 00:47:37,461 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 00:47:37,461 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 00:48:43,106 | INFO | bot.services.sessions | Recorded first 'sales' start for user 1146010950.
+2026-06-09 00:48:49,997 | INFO | bot.services.sessions | Recorded first 'demo' start for user 1146010950.
+2026-06-09 00:48:50,008 | INFO | bot.bots.demo | Demo /start payload from user 1146010950: 'from_sales'
+2026-06-09 00:48:59,225 | INFO | bot.services.sessions | Recorded first 'payment' start for user 1146010950.
+2026-06-09 00:48:59,233 | INFO | bot.handlers.start | User 1146010950 (@Kedar0511) triggered /start
+2026-06-09 00:48:59,235 | INFO | bot.handlers.start | Existing user returned: <User telegram_id=1146010950 username=Kedar0511 has_full_access=False>
+2026-06-09 00:49:03,798 | INFO | bot.handlers.video | Routing callback action 'library' with param '' for user 1146010950
+2026-06-09 00:49:06,705 | INFO | bot.handlers.video | Routing callback action 'video' with param 'video_002' for user 1146010950
+2026-06-09 00:49:11,080 | INFO | bot.handlers.video | Routing callback action 'buy_access' with param 'video_002' for user 1146010950
+2026-06-09 00:49:11,733 | INFO | bot.handlers.payment | Created Razorpay order order_SzFYT14FkF7KwT for user 1146010950 (video video_002)
+2026-06-09 00:49:11,733 | INFO | bot.handlers.payment | Saved pending payment order_SzFYT14FkF7KwT for user 1146010950 (video video_002)
+2026-06-09 00:49:21,726 | INFO | bot.handlers.video | Routing callback action 'start_preview' with param 'video_002' for user 1146010950
+2026-06-09 00:49:21,736 | INFO | bot.handlers.video | User 1146010950 requested preview for video_002 but already watched in last 24h.

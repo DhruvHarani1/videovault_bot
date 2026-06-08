@@ -387,9 +387,9 @@ async def backfill_plans_phase0() -> None:
             logger.info(f"Phase 0: seeded {seeded_plans} product plan(s).")
 
         # 2. Migrate existing `videos` rows → `content_items` (preserve file_ids).
-        existing_content_ids = {
-            c.id for c in (await session.execute(select(ContentItem.id))).scalars().all()
-        }
+        existing_content_ids = set(
+            (await session.execute(select(ContentItem.id))).scalars().all()
+        )
         videos = (await session.execute(select(Video))).scalars().all()
         migrated_content = 0
         legacy_content_ids = []

@@ -149,6 +149,14 @@ class Settings:
             "file": self.FILE_BOT_USERNAME,
         }.get(bot_key, "")
 
+    def webhook_secret_for(self, bot_key: str) -> str:
+        return {
+            "sales": self.SALES_WEBHOOK_SECRET,
+            "demo": self.DEMO_WEBHOOK_SECRET,
+            "payment": self.PAYMENT_WEBHOOK_SECRET,
+            "file": self.FILE_WEBHOOK_SECRET,
+        }.get(bot_key, self.WEBHOOK_SECRET_TOKEN)
+
 # Export settings singleton
 settings = Settings()
 
