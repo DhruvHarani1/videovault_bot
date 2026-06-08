@@ -7,9 +7,19 @@ from bot.models.user import (
     Payment,
     VideoView,
     BotConfig,
+    # Phase 0 — plan-based / multi-bot schema
+    Plan,
+    ContentItem,
+    PlanContent,
+    PaymentTicket,
+    PlanAccess,
+    Delivery,
+    UserBotState,
+    # helpers
     get_db,
     init_db,
     seed_legacy_video_if_needed,
+    backfill_plans_phase0,
     AsyncSessionLocal,
     engine,
 )

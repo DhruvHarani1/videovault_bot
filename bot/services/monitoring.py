@@ -1,8 +1,6 @@
 import os
 import re
 import logging
-import smtplib
-from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.future import select
@@ -24,25 +22,21 @@ def update_last_message_time():
     last_message_time = datetime.utcnow()
     inactivity_alert_sent = False
 
-def send_email_alert(subject: str, body: str):
-    """Sends an email alert using Python's smtplib with Gmail SMTP."""
-    if not settings.ALERT_EMAIL or not settings.GMAIL_APP_PASSWORD:
-        logger.warning("Email alert skipped: ALERT_EMAIL or GMAIL_APP_PASSWORD not configured in .env.")
-        return
+async def send_email_alert(subject: str, body: str):
+    """Sends an alert email to all configured recipients.
 
-    try:
-        msg = MIMEText(body)
-        msg["Subject"] = subject
-        msg["From"] = settings.ALERT_EMAIL
-        msg["To"] = settings.ALERT_EMAIL  # Send to the configured alert destination email
-
-        # Connect to Gmail SMTP server
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(settings.ALERT_EMAIL, settings.GMAIL_APP_PASSWORD)
-            server.send_message(msg)
-        logger.info(f"Email alert sent successfully: '{subject}'")
-    except Exception as e:
-        logger.error(f"Failed to send email alert: {e}", exc_info=True)
+    Thin wrapper over the new multi-recipient, non-blocking email service. The
+    plaintext `body` is also rendered into a minimal HTML block so the message
+    looks consistent with the payment-workflow emails.
+    """
+    from bot.services.email import send_email
+    html = (
+        '<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#111;">'
+        f'<h3 style="margin:0 0 8px;">{subject}</h3>'
+        f'<pre style="white-space:pre-wrap;background:#f7fafc;padding:12px;border-radius:8px;'
+        f'border:1px solid #e2e8f0;">{body}</pre></div>'
+    )
+    await send_email(subject=subject, html_body=html, text_body=body)
 
 async def check_inactivity_alert(bot: Bot):
     """Checks if the bot hasn't received any updates in 30 minutes, and triggers email if needed."""
@@ -57,7 +51,7 @@ async def check_inactivity_alert(bot: Bot):
                 f"{int(elapsed.total_seconds() / 60)} minutes (since {last_message_time.strftime('%Y-%m-%d %H:%M:%S')} UTC).\n\n"
                 f"Please check if the container is running and if webhook registration is valid."
             )
-            send_email_alert(subject, body)
+            await send_email_alert(subject, body)
     else:
         # Reset if bot is active again
         inactivity_alert_sent = False

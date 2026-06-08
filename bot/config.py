@@ -78,7 +78,7 @@ class Settings:
         # RAZORPAY_WEBHOOK_SECRET
         self.RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "")
 
-        # ALERT_EMAIL
+        # ALERT_EMAIL (legacy single recipient — kept for backward compatibility)
         self.ALERT_EMAIL = os.getenv("ALERT_EMAIL", "")
 
         # GMAIL_APP_PASSWORD
@@ -86,6 +86,68 @@ class Settings:
 
         # UPTIMEROBOT_ALERT_CONTACT_ID
         self.UPTIMEROBOT_ALERT_CONTACT_ID = os.getenv("UPTIMEROBOT_ALERT_CONTACT_ID", "")
+
+        # ──────────────────────────────────────────────────────────────────────
+        # Phase 0 — Multi-bot ecosystem config.
+        # All optional: the existing single bot keeps booting if these are unset.
+        # Role → handle mapping (after the name swap):
+        #   Sales   → @muthalsamajhbot
+        #   Demo    → @lookatthedemobot
+        #   Payment → @videovault693bot   (this is the CURRENT live BOT_TOKEN)
+        #   File    → (new bot, to be created)
+        # ──────────────────────────────────────────────────────────────────────
+
+        # Bot tokens. PAYMENT_BOT_TOKEN falls back to the existing BOT_TOKEN since
+        # @videovault693bot (the current token) is now the Payment Bot.
+        self.SALES_BOT_TOKEN = os.getenv("SALES_BOT_TOKEN", "")
+        self.DEMO_BOT_TOKEN = os.getenv("DEMO_BOT_TOKEN", "")
+        self.PAYMENT_BOT_TOKEN = os.getenv("PAYMENT_BOT_TOKEN", "") or self.BOT_TOKEN
+        self.FILE_BOT_TOKEN = os.getenv("FILE_BOT_TOKEN", "")
+
+        # Bot usernames (without @) — needed to build t.me deep links between bots.
+        self.SALES_BOT_USERNAME = os.getenv("SALES_BOT_USERNAME", "muthalsamajhbot").lstrip("@")
+        self.DEMO_BOT_USERNAME = os.getenv("DEMO_BOT_USERNAME", "lookatthedemobot").lstrip("@")
+        self.PAYMENT_BOT_USERNAME = os.getenv("PAYMENT_BOT_USERNAME", "videovault693bot").lstrip("@")
+        self.FILE_BOT_USERNAME = os.getenv("FILE_BOT_USERNAME", "").lstrip("@")
+
+        # Per-bot webhook secret tokens (fall back to the shared WEBHOOK_SECRET_TOKEN).
+        self.SALES_WEBHOOK_SECRET = os.getenv("SALES_WEBHOOK_SECRET", self.WEBHOOK_SECRET_TOKEN)
+        self.DEMO_WEBHOOK_SECRET = os.getenv("DEMO_WEBHOOK_SECRET", self.WEBHOOK_SECRET_TOKEN)
+        self.PAYMENT_WEBHOOK_SECRET = os.getenv("PAYMENT_WEBHOOK_SECRET", self.WEBHOOK_SECRET_TOKEN)
+        self.FILE_WEBHOOK_SECRET = os.getenv("FILE_WEBHOOK_SECRET", self.WEBHOOK_SECRET_TOKEN)
+
+        # Payment QR / UPI image served by the Payment Bot (Telegram file_id or URL).
+        self.PAYMENT_QR_FILE_ID = os.getenv("PAYMENT_QR_FILE_ID", "")
+
+        # Demo content expiry (seconds) for the Demo Bot.
+        try:
+            self.DEMO_EXPIRY_SECONDS = int(os.getenv("DEMO_EXPIRY_SECONDS", "200"))
+        except ValueError:
+            self.DEMO_EXPIRY_SECONDS = 200
+
+        # Multi-recipient alert emails. Comma-separated; falls back to ALERT_EMAIL.
+        emails_raw = os.getenv("ALERT_EMAILS", "")
+        recipients = [e.strip() for e in emails_raw.split(",") if e.strip()]
+        if not recipients and self.ALERT_EMAIL:
+            recipients = [self.ALERT_EMAIL]
+        self.ALERT_EMAILS = recipients
+
+    # Convenience: map a bot role key → its token (used by the Phase 2 bootstrap).
+    def bot_token_for(self, bot_key: str) -> str:
+        return {
+            "sales": self.SALES_BOT_TOKEN,
+            "demo": self.DEMO_BOT_TOKEN,
+            "payment": self.PAYMENT_BOT_TOKEN,
+            "file": self.FILE_BOT_TOKEN,
+        }.get(bot_key, "")
+
+    def bot_username_for(self, bot_key: str) -> str:
+        return {
+            "sales": self.SALES_BOT_USERNAME,
+            "demo": self.DEMO_BOT_USERNAME,
+            "payment": self.PAYMENT_BOT_USERNAME,
+            "file": self.FILE_BOT_USERNAME,
+        }.get(bot_key, "")
 
 # Export settings singleton
 settings = Settings()
