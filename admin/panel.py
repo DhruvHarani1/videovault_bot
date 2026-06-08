@@ -31,8 +31,40 @@ from bot.services.videos import (
     update_video_files,
     get_video,
 )
+from bot.services.plans import (
+    list_all_plans,
+    get_plan,
+    create_plan,
+    set_plan_active,
+    update_plan_price,
+    update_plan_fields,
+    count_linked_content,
+)
+from bot.services.content import (
+    create_content,
+    list_content,
+    get_content,
+    set_content_active,
+    link_content_to_plan,
+    unlink_content_from_plan,
+    list_content_for_plan,
+)
+from bot.services.delivery import store_media_in_channel
 
 logger = logging.getLogger(__name__)
+
+
+def _md(text) -> str:
+    """Escape legacy-Markdown special chars in dynamic text (titles, names, ids
+    shown outside backticks). Prevents 'Can't parse entities' errors from stray
+    underscores/asterisks in user- or auto-generated strings."""
+    if text is None:
+        return ""
+    text = str(text)
+    for ch in ("\\", "`", "*", "_", "["):
+        text = text.replace(ch, "\\" + ch)
+    return text
+
 
 def admin_only(func_to_decorate):
     """Decorator to restrict handler access to admin users only."""
@@ -610,6 +642,228 @@ async def export_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         logger.error(f"CSV export failed: {e}", exc_info=True)
         await update.message.reply_text("❌ Failed to generate CSV export.")
 
+# ══════════════════════════════════════════════════════════════════════════════
+# Phase 3 — Plan & Content Management (CMS)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@admin_only
+async def add_plan_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Guided flow: name → description → price → video count."""
+    context.user_data.pop("new_plan", None)
+    context.user_data["new_plan"] = {}
+    context.user_data["admin_state"] = "addplan_name"
+    await update.message.reply_text(
+        "➕ *Add Plan — Step 1 of 4*\n\nSend the plan **name** (e.g. `Standard`).\n"
+        "Type /canceladmin to abort.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
+async def list_plans_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    plans = await list_all_plans()
+    if not plans:
+        await update.message.reply_text("📭 No plans yet. Use /addplan to create one.")
+        return
+    lines = ["📋 *Plans*\n"]
+    for p in plans:
+        linked = await count_linked_content(p.id)
+        flag = "🟢" if p.is_active else "⚪"
+        demo = "🎞 demo set" if p.preview_file_id else "no demo"
+        lines.append(
+            f"{flag} `{p.id}` — {_md(p.name)} — ₹{p.price_inr}\n"
+            f"     advertised: {p.video_count} • linked: {linked} • {demo}"
+        )
+    lines.append("\n🟢 active ⚪ hidden")
+    lines.append("`/setplanprice <id> <amt>` · `/removeplan <id>` · `/plancontents <id>`")
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
+
+
+@admin_only
+async def set_plan_price_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+    if len(args) < 2:
+        await update.message.reply_text("Usage: `/setplanprice <plan_id> <amount>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    try:
+        price = int(args[1])
+        if price <= 0:
+            raise ValueError()
+    except ValueError:
+        await update.message.reply_text("❌ Amount must be a positive integer.")
+        return
+    ok = await update_plan_price(args[0], price)
+    await update.message.reply_text(
+        f"✅ Plan `{args[0]}` price set to ₹{price}." if ok else f"❌ Plan `{args[0]}` not found.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
+async def remove_plan_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/removeplan <plan_id>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    ok = await set_plan_active(args[0], False)
+    await update.message.reply_text(
+        f"✅ Plan `{args[0]}` hidden from the catalog." if ok else f"❌ Plan `{args[0]}` not found.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
+async def restore_plan_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/restoreplan <plan_id>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    ok = await set_plan_active(args[0], True)
+    await update.message.reply_text(
+        f"✅ Plan `{args[0]}` is visible again." if ok else f"❌ Plan `{args[0]}` not found.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
+async def set_qr_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Set the payment QR/UPI image shown by the Payment bot. Send a photo after."""
+    context.user_data["admin_state"] = "setqr_waiting_image"
+    await update.message.reply_text(
+        "💳 Send the **payment QR / UPI image** now (as a photo).\n"
+        "It will be shown to users on the payment screen. /canceladmin to abort.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
+async def set_plan_preview_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Set a plan's demo preview clip. Usage: /setplanpreview <plan_id>, then send a video."""
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/setplanpreview <plan_id>` then send the demo video.", parse_mode=ParseMode.MARKDOWN)
+        return
+    plan = await get_plan(args[0])
+    if not plan:
+        await update.message.reply_text(f"❌ Plan `{args[0]}` not found.", parse_mode=ParseMode.MARKDOWN)
+        return
+    context.user_data["admin_state"] = "setplanpreview_waiting_video"
+    context.user_data["setplanpreview_plan_id"] = args[0]
+    await update.message.reply_text(
+        f"🎬 Send the **demo/preview video** for plan `{args[0]}` ({plan.name}).\n"
+        "It will be shown (and auto-deleted) by the Demo bot. /canceladmin to abort.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
+async def add_content_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Bulk content upload mode: every video/photo/document sent becomes a content
+    item (title = caption or auto). Exit with /donecontent or /canceladmin."""
+    context.user_data["admin_state"] = "addcontent_bulk"
+    context.user_data["addcontent_count"] = 0
+    await update.message.reply_text(
+        "📥 *Bulk Content Upload*\n\n"
+        "Send me videos (or photos/documents) one after another. Each becomes a content "
+        "item; the **caption** is used as its title if provided.\n\n"
+        "Send /donecontent when finished, or /canceladmin to abort.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
+async def done_content_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    n = context.user_data.pop("addcontent_count", 0)
+    context.user_data.pop("admin_state", None)
+    await update.message.reply_text(f"✅ Done. Added {n} content item(s). Use /linkcontent to attach them to plans.")
+
+
+@admin_only
+async def list_content_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    items = await list_content(active_only=False, limit=50)
+    if not items:
+        await update.message.reply_text("📭 No content yet. Use /addcontent to upload.")
+        return
+    lines = ["🗂 *Content Library* (latest 50)\n"]
+    for it in items:
+        flag = "🟢" if it.is_active else "⚪"
+        lines.append(f"{flag} `{it.id}` — {_md(it.title)} ({it.media_type})")
+    lines.append("\n`/linkcontent <plan_id> <content_id...>` · `/removecontent <id>`")
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
+
+
+@admin_only
+async def remove_content_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/removecontent <content_id>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    ok = await set_content_active(args[0], False)
+    await update.message.reply_text(
+        f"✅ Content `{args[0]}` hidden." if ok else f"❌ Content `{args[0]}` not found.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
+async def link_content_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+    if len(args) < 2:
+        await update.message.reply_text(
+            "Usage: `/linkcontent <plan_id> <content_id> [content_id ...]`",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return
+    plan_id = args[0]
+    plan = await get_plan(plan_id)
+    if not plan:
+        await update.message.reply_text(f"❌ Plan `{plan_id}` not found.", parse_mode=ParseMode.MARKDOWN)
+        return
+    status_disp = {"linked": "linked", "exists": "already linked", "not_found": "not found"}
+    results = []
+    for cid in args[1:]:
+        status = await link_content_to_plan(plan_id, cid)
+        emoji = {"linked": "✅", "exists": "↔️", "not_found": "❌"}.get(status, "❓")
+        results.append(f"{emoji} `{cid}` — {status_disp.get(status, status)}")
+    await update.message.reply_text(
+        f"Linking to `{plan_id}`:\n" + "\n".join(results), parse_mode=ParseMode.MARKDOWN
+    )
+
+
+@admin_only
+async def unlink_content_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+    if len(args) < 2:
+        await update.message.reply_text("Usage: `/unlinkcontent <plan_id> <content_id>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    ok = await unlink_content_from_plan(args[0], args[1])
+    await update.message.reply_text(
+        f"✅ Unlinked `{args[1]}` from `{args[0]}`." if ok else "❌ That link doesn't exist.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
+async def plan_contents_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/plancontents <plan_id>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    plan = await get_plan(args[0])
+    if not plan:
+        await update.message.reply_text(f"❌ Plan `{args[0]}` not found.", parse_mode=ParseMode.MARKDOWN)
+        return
+    items = await list_content_for_plan(args[0], active_only=False)
+    if not items:
+        await update.message.reply_text(f"Plan `{args[0]}` ({plan.name}) has no linked content yet.", parse_mode=ParseMode.MARKDOWN)
+        return
+    lines = [f"📦 *{_md(plan.name)}* (`{plan.id}`) — {len(items)} item(s)\n"]
+    for it in items:
+        flag = "🟢" if it.is_active else "⚪"
+        lines.append(f"{flag} `{it.id}` — {_md(it.title)}")
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
+
+
 async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Intercepts messages when the admin is in broadcast, Direct Message, or Video guided upload flows."""
     user = update.effective_user
@@ -760,6 +1014,145 @@ async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_T
                 context.user_data.pop("new_video", None)
         else:
             await update.message.reply_text("❌ Please reply with a valid video file.")
+
+    # ────────── Phase 3: /addplan guided flow ──────────
+    elif admin_state == "addplan_name":
+        if msg.text:
+            context.user_data["new_plan"]["name"] = msg.text.strip()
+            context.user_data["admin_state"] = "addplan_desc"
+            await update.message.reply_text(
+                "➕ *Add Plan — Step 2 of 4*\n\nSend a short **description** (or `-` to skip).",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        else:
+            await update.message.reply_text("❌ Please send the plan name as text.")
+
+    elif admin_state == "addplan_desc":
+        if msg.text:
+            desc = msg.text.strip()
+            context.user_data["new_plan"]["description"] = None if desc == "-" else desc
+            context.user_data["admin_state"] = "addplan_price"
+            await update.message.reply_text(
+                "➕ *Add Plan — Step 3 of 4*\n\nSend the **price in INR** (integer).",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        else:
+            await update.message.reply_text("❌ Please send a description (or `-`).")
+
+    elif admin_state == "addplan_price":
+        try:
+            price = int(msg.text.strip())
+            if price <= 0:
+                raise ValueError()
+        except (ValueError, AttributeError):
+            await update.message.reply_text("❌ Price must be a positive integer.")
+            return
+        context.user_data["new_plan"]["price"] = price
+        context.user_data["admin_state"] = "addplan_count"
+        await update.message.reply_text(
+            "➕ *Add Plan — Step 4 of 4*\n\nSend the **advertised video count** (integer, e.g. `65`).",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+
+    elif admin_state == "addplan_count":
+        try:
+            count = int(msg.text.strip())
+            if count < 0:
+                raise ValueError()
+        except (ValueError, AttributeError):
+            await update.message.reply_text("❌ Count must be a non-negative integer.")
+            return
+        data = context.user_data.get("new_plan", {})
+        try:
+            plan = await create_plan(
+                name=data["name"],
+                price_inr=data["price"],
+                video_count=count,
+                description=data.get("description"),
+            )
+            await update.message.reply_text(
+                f"✅ Created `{plan.id}` — *{_md(data['name'])}* — ₹{data['price']} ({count} videos).\n"
+                f"Now link content with `/linkcontent {plan.id} <content_id...>`.",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        except Exception as e:
+            logger.error(f"Failed to create plan: {e}", exc_info=True)
+            await update.message.reply_text(f"❌ Failed to create plan: {e}")
+        finally:
+            context.user_data.pop("admin_state", None)
+            context.user_data.pop("new_plan", None)
+
+    # ────────── Phase 5: /setqr capture ──────────
+    elif admin_state == "setqr_waiting_image":
+        file_id = None
+        if msg.photo:
+            file_id = msg.photo[-1].file_id
+        elif msg.document and (msg.document.mime_type or "").startswith("image/"):
+            file_id = msg.document.file_id
+        if not file_id:
+            await update.message.reply_text("❌ Please send an image (photo) of the QR.")
+            return
+        await set_config("PAYMENT_QR_FILE_ID", file_id)
+        context.user_data.pop("admin_state", None)
+        await update.message.reply_text("✅ Payment QR image saved. Users will now see it on the payment screen.")
+
+    # ────────── Phase 4: /setplanpreview capture ──────────
+    elif admin_state == "setplanpreview_waiting_video":
+        if msg.video:
+            plan_id = context.user_data.get("setplanpreview_plan_id")
+            storage_msg_id = await store_media_in_channel(
+                context.bot, from_chat_id=update.effective_chat.id, message_id=msg.message_id
+            )
+            ok = await update_plan_fields(
+                plan_id, preview_file_id=msg.video.file_id, preview_msg_id=storage_msg_id,
+            )
+            context.user_data.pop("admin_state", None)
+            context.user_data.pop("setplanpreview_plan_id", None)
+            if not ok:
+                txt = f"❌ Plan `{plan_id}` not found."
+            elif storage_msg_id:
+                txt = f"✅ Demo preview set for plan `{plan_id}` (stored in library channel)."
+            else:
+                txt = (f"⚠️ Preview saved for `{plan_id}`, but it could NOT be copied to the "
+                       f"library channel — the Demo bot won't be able to show it. "
+                       f"Make sure this bot is an admin of the storage channel, then retry.")
+            await update.message.reply_text(txt, parse_mode=ParseMode.MARKDOWN)
+        else:
+            await update.message.reply_text("❌ Please send a video file for the demo preview.")
+
+    # ────────── Phase 3: /addcontent bulk capture ──────────
+    elif admin_state == "addcontent_bulk":
+        file_id = None
+        media_type = "video"
+        if msg.video:
+            file_id, media_type = msg.video.file_id, "video"
+        elif msg.photo:
+            file_id, media_type = msg.photo[-1].file_id, "photo"
+        elif msg.document:
+            file_id, media_type = msg.document.file_id, "document"
+
+        if not file_id:
+            await update.message.reply_text("❌ Send a video, photo, or document — or /donecontent to finish.")
+            return
+
+        title = (msg.caption or "").strip() or f"Untitled {media_type}"
+        try:
+            # Copy into the shared storage channel so any bot can deliver it later.
+            storage_msg_id = await store_media_in_channel(
+                context.bot, from_chat_id=update.effective_chat.id, message_id=msg.message_id
+            )
+            item = await create_content(
+                title=title, file_id=file_id, media_type=media_type, storage_msg_id=storage_msg_id,
+            )
+            context.user_data["addcontent_count"] = context.user_data.get("addcontent_count", 0) + 1
+            warn = "" if storage_msg_id else "\n⚠️ Not copied to the library channel — check the bot is an admin there."
+            await update.message.reply_text(
+                f"✅ Saved `{item.id}` — {_md(title)}.{warn} Send more, or /donecontent.",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        except Exception as e:
+            logger.error(f"Failed to save content: {e}", exc_info=True)
+            await update.message.reply_text(f"❌ Failed to save content: {e}")
 
     # Prompt 13: DM message sending state
     elif admin_state.startswith("waiting_for_admin_msg:"):
@@ -957,6 +1350,22 @@ def setup_admin_handlers(app: Application) -> None:
     app.add_handler(CommandHandler("listvideos", list_videos_cmd))
     app.add_handler(CommandHandler("removevideo", remove_video_cmd))
     app.add_handler(CommandHandler("restorevideo", restore_video_cmd))
+
+    # Phase 3 — Plan & Content CMS commands
+    app.add_handler(CommandHandler("addplan", add_plan_cmd))
+    app.add_handler(CommandHandler("listplans", list_plans_cmd))
+    app.add_handler(CommandHandler("setplanprice", set_plan_price_cmd))
+    app.add_handler(CommandHandler("setplanpreview", set_plan_preview_cmd))
+    app.add_handler(CommandHandler("removeplan", remove_plan_cmd))
+    app.add_handler(CommandHandler("restoreplan", restore_plan_cmd))
+    app.add_handler(CommandHandler("setqr", set_qr_cmd))
+    app.add_handler(CommandHandler("addcontent", add_content_cmd))
+    app.add_handler(CommandHandler("donecontent", done_content_cmd))
+    app.add_handler(CommandHandler("listcontent", list_content_cmd))
+    app.add_handler(CommandHandler("removecontent", remove_content_cmd))
+    app.add_handler(CommandHandler("linkcontent", link_content_cmd))
+    app.add_handler(CommandHandler("unlinkcontent", unlink_content_cmd))
+    app.add_handler(CommandHandler("plancontents", plan_contents_cmd))
     # /canceladmin to avoid colliding with /cancel from the user-facing /contact conversation
     app.add_handler(CommandHandler("canceladmin", cancel_admin_flow_cmd))
 
@@ -970,6 +1379,9 @@ def setup_admin_handlers(app: Application) -> None:
     app.add_handler(CallbackQueryHandler(admin_callback_handler, pattern="^(admin_menu|admin_stats|admin_list_paid:|admin_broadcast_init|admin_bc_target:|admin_user_op:|admin_close)"))
     
     # Message receiver for broadcast, guided upload and DMs payload capturing
-    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND) | filters.PHOTO | filters.VIDEO, admin_message_receiver))
+    app.add_handler(MessageHandler(
+        filters.TEXT & (~filters.COMMAND) | filters.PHOTO | filters.VIDEO | filters.Document.ALL,
+        admin_message_receiver,
+    ))
 
 

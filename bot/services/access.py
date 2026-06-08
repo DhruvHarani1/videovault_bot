@@ -8,7 +8,7 @@ from datetime import datetime
 from contextlib import asynccontextmanager
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from bot.models.user import User, UserAccess, AsyncSessionLocal
+from bot.models.user import User, UserAccess, PlanAccess, AsyncSessionLocal
 import logging
 
 logger = logging.getLogger(__name__)
@@ -115,3 +115,61 @@ async def revoke_user_access(telegram_id: int, video_id: str = None, db: AsyncSe
             if user:
                 user.has_full_access = False
                 user.access_granted_at = None
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Plan-level access (the canonical model for the plan-based system).
+# ──────────────────────────────────────────────────────────────────────────────
+
+async def grant_plan_access(telegram_id: int, plan_id: str, db: AsyncSession = None) -> None:
+    """Grant a user access to all content in a plan. Idempotent. Ensures a User row."""
+    now = datetime.utcnow()
+    async with _maybe_session(db) as session:
+        user_res = await session.execute(select(User).filter(User.telegram_id == telegram_id))
+        user = user_res.scalars().first()
+        if not user:
+            session.add(User(telegram_id=telegram_id, is_active=True))
+
+        existing = await session.execute(
+            select(PlanAccess).filter(
+                PlanAccess.telegram_id == telegram_id,
+                PlanAccess.plan_id == plan_id,
+            )
+        )
+        if existing.scalars().first() is None:
+            session.add(PlanAccess(telegram_id=telegram_id, plan_id=plan_id, granted_at=now))
+            logger.info(f"Granted user {telegram_id} access to plan {plan_id}.")
+
+
+async def has_plan_access(telegram_id: int, plan_id: str, db: AsyncSession = None) -> bool:
+    async with _maybe_session(db) as session:
+        result = await session.execute(
+            select(PlanAccess).filter(
+                PlanAccess.telegram_id == telegram_id,
+                PlanAccess.plan_id == plan_id,
+            )
+        )
+        return result.scalars().first() is not None
+
+
+async def list_user_plans(telegram_id: int, db: AsyncSession = None) -> list:
+    """Return the plan_ids a user has access to."""
+    async with _maybe_session(db) as session:
+        result = await session.execute(
+            select(PlanAccess.plan_id).filter(PlanAccess.telegram_id == telegram_id)
+        )
+        return list(result.scalars().all())
+
+
+async def revoke_plan_access(telegram_id: int, plan_id: str, db: AsyncSession = None) -> None:
+    async with _maybe_session(db) as session:
+        result = await session.execute(
+            select(PlanAccess).filter(
+                PlanAccess.telegram_id == telegram_id,
+                PlanAccess.plan_id == plan_id,
+            )
+        )
+        row = result.scalars().first()
+        if row:
+            await session.delete(row)
+            logger.info(f"Revoked plan {plan_id} access from user {telegram_id}.")

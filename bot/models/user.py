@@ -132,6 +132,131 @@ class BotConfig(Base):
         return f"<BotConfig key={self.key} value={self.value}>"
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Phase 0 — Plan-based, multi-bot schema (ADDITIVE).
+# These tables are created now but are NOT yet read by any runtime handler; later
+# phases migrate the user flows onto them. Legacy tables above remain authoritative
+# until then, so this phase causes zero behavior change.
+# ──────────────────────────────────────────────────────────────────────────────
+
+class Plan(Base):
+    """A purchasable plan, e.g. '₹50 → 65 videos'."""
+    __tablename__ = "plans"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)  # 'plan_001'
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    price_inr: Mapped[int] = mapped_column(Integer, nullable=False)
+    video_count: Mapped[int] = mapped_column(Integer, default=0)  # denormalized for display
+    preview_file_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    # Channel message id of the demo preview in the storage channel (portable across bots).
+    preview_msg_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    def __repr__(self):
+        return f"<Plan id={self.id} name={self.name} price={self.price_inr}>"
+
+
+class ContentItem(Base):
+    """A single deliverable piece of content stored as a Telegram file_id."""
+    __tablename__ = "content_items"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)  # 'content_0001'
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    file_id: Mapped[str] = mapped_column(String, nullable=False)  # uploading-bot file_id or URL
+    # Channel message id in the storage channel — the portable, cross-bot reference.
+    storage_msg_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    media_type: Mapped[str] = mapped_column(String, default="video")  # video/photo/document
+    category: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    tags: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # comma-separated
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    def __repr__(self):
+        return f"<ContentItem id={self.id} title={self.title} type={self.media_type}>"
+
+
+class PlanContent(Base):
+    """Many-to-many mapping of plans to the content they include."""
+    __tablename__ = "plan_contents"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    plan_id: Mapped[str] = mapped_column(String, ForeignKey("plans.id"), nullable=False)
+    content_id: Mapped[str] = mapped_column(String, ForeignKey("content_items.id"), nullable=False)
+
+    __table_args__ = (UniqueConstraint("plan_id", "content_id", name="uix_plan_content"),)
+
+    def __repr__(self):
+        return f"<PlanContent plan={self.plan_id} content={self.content_id}>"
+
+
+class PaymentTicket(Base):
+    """A manual-proof payment awaiting admin approval (replaces Razorpay orders)."""
+    __tablename__ = "payment_tickets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.telegram_id"), nullable=False)
+    plan_id: Mapped[str] = mapped_column(String, ForeignKey("plans.id"), nullable=False)
+    amount_inr: Mapped[int] = mapped_column(Integer, nullable=False)
+    proof_file_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # screenshot
+    status: Mapped[str] = mapped_column(String, default="pending")  # pending/approved/rejected
+    reviewed_by: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)  # admin telegram_id
+    reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    reject_reason: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    def __repr__(self):
+        return f"<PaymentTicket id={self.id} user={self.telegram_id} plan={self.plan_id} status={self.status}>"
+
+
+class PlanAccess(Base):
+    """Grants a user access to all content in a plan (replaces per-video user_access)."""
+    __tablename__ = "plan_access"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.telegram_id"), nullable=False)
+    plan_id: Mapped[str] = mapped_column(String, ForeignKey("plans.id"), nullable=False)
+    granted_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    __table_args__ = (UniqueConstraint("telegram_id", "plan_id", name="uix_user_plan"),)
+
+    def __repr__(self):
+        return f"<PlanAccess user={self.telegram_id} plan={self.plan_id}>"
+
+
+class Delivery(Base):
+    """Tracks which content has been delivered to which user (for resume/audit)."""
+    __tablename__ = "deliveries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    content_id: Mapped[str] = mapped_column(String, nullable=False)
+    plan_id: Mapped[str] = mapped_column(String, nullable=False)
+    delivered_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    __table_args__ = (UniqueConstraint("telegram_id", "content_id", name="uix_user_delivery"),)
+
+    def __repr__(self):
+        return f"<Delivery user={self.telegram_id} content={self.content_id}>"
+
+
+class UserBotState(Base):
+    """Records which bots a user has started — required for cross-bot delivery routing,
+    since a Telegram bot cannot message a user who hasn't pressed Start on it."""
+    __tablename__ = "user_bot_state"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    bot_key: Mapped[str] = mapped_column(String, nullable=False)  # sales/demo/payment/file
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    __table_args__ = (UniqueConstraint("telegram_id", "bot_key", name="uix_user_bot"),)
+
+    def __repr__(self):
+        return f"<UserBotState user={self.telegram_id} bot={self.bot_key}>"
+
+
 # Create async engine and sessionmaker
 engine = create_async_engine(settings.DATABASE_URL, echo=False)
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
@@ -163,11 +288,23 @@ async def _migrate_payments_add_video_id(conn) -> None:
         )
 
 
+async def _migrate_add_column(conn, table: str, column: str, coltype: str) -> None:
+    """SQLite-safe: add a nullable column to a table if it doesn't exist yet."""
+    result = await conn.execute(text(f"PRAGMA table_info({table})"))
+    cols = [row[1] for row in result.fetchall()]
+    if column not in cols:
+        logger.info(f"Migrating: adding {table}.{column} ({coltype}).")
+        await conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {coltype}"))
+
+
 async def init_db():
     """Initializes the database, creates all tables, and applies in-place migrations."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         await _migrate_payments_add_video_id(conn)
+        # Phase 4 storage-channel refs (additive, nullable).
+        await _migrate_add_column(conn, "content_items", "storage_msg_id", "INTEGER")
+        await _migrate_add_column(conn, "plans", "preview_msg_id", "INTEGER")
 
 
 async def seed_legacy_video_if_needed() -> None:
@@ -221,3 +358,127 @@ async def seed_legacy_video_if_needed() -> None:
             migrated += 1
         if migrated:
             logger.info(f"Migrated {migrated} legacy paying user(s) into user_access for video_001.")
+
+
+# Phase 0 product plan catalog (denormalized counts shown to users).
+PHASE0_PLANS = [
+    {"id": "plan_001", "name": "Starter",  "price_inr": 20,  "video_count": 30},
+    {"id": "plan_002", "name": "Standard", "price_inr": 50,  "video_count": 65},
+    {"id": "plan_003", "name": "Premium",  "price_inr": 100, "video_count": 150},
+]
+# A synthetic plan that holds all pre-existing content and preserves access for
+# anyone who already paid under the old single-video model.
+LEGACY_PLAN_ID = "plan_legacy"
+
+
+async def backfill_plans_phase0() -> None:
+    """Phase 0 backfill — additive and idempotent.
+
+    Seeds the 3 product plans, migrates every existing `videos` row into
+    `content_items`, bundles them under a legacy plan, and converts existing
+    access (user_access rows + User.has_full_access) into plan_access for the
+    legacy plan. Old tables are left untouched, so the live bot is unaffected.
+    Safe to run on every boot — each step no-ops if already applied.
+    """
+    from sqlalchemy.future import select
+
+    async with get_db() as session:
+        # 1. Seed the 3 product plans (skip any already present).
+        plan_rows = (await session.execute(select(Plan))).scalars().all()
+        existing_plan_ids = {p.id for p in plan_rows}
+
+        seeded_plans = 0
+        for spec in PHASE0_PLANS:
+            if spec["id"] not in existing_plan_ids:
+                session.add(Plan(
+                    id=spec["id"],
+                    name=spec["name"],
+                    description=f"{spec['video_count']} videos for ₹{spec['price_inr']}",
+                    price_inr=spec["price_inr"],
+                    video_count=spec["video_count"],
+                    is_active=True,
+                ))
+                seeded_plans += 1
+        if seeded_plans:
+            logger.info(f"Phase 0: seeded {seeded_plans} product plan(s).")
+
+        # 2. Migrate existing `videos` rows → `content_items` (preserve file_ids).
+        existing_content_ids = set(
+            (await session.execute(select(ContentItem.id))).scalars().all()
+        )
+        videos = (await session.execute(select(Video))).scalars().all()
+        migrated_content = 0
+        legacy_content_ids = []
+        for v in videos:
+            content_id = f"content_{v.id}"  # e.g. content_video_001 (stable, idempotent)
+            legacy_content_ids.append(content_id)
+            if content_id not in existing_content_ids:
+                session.add(ContentItem(
+                    id=content_id,
+                    title=v.title,
+                    file_id=v.full_file_id,
+                    media_type="video",
+                    category="legacy",
+                    is_active=True,
+                ))
+                migrated_content += 1
+        if migrated_content:
+            logger.info(f"Phase 0: migrated {migrated_content} video(s) into content_items.")
+
+        # 3. Create the legacy plan holding all migrated content (if there is any).
+        if legacy_content_ids:
+            legacy_plan = (await session.execute(
+                select(Plan).filter(Plan.id == LEGACY_PLAN_ID)
+            )).scalars().first()
+            if not legacy_plan:
+                session.add(Plan(
+                    id=LEGACY_PLAN_ID,
+                    name="Founding Access",
+                    description="Legacy access to all original content.",
+                    price_inr=0,
+                    video_count=len(legacy_content_ids),
+                    is_active=False,  # hidden from the public catalog
+                ))
+                logger.info("Phase 0: created legacy plan 'plan_legacy'.")
+
+            # Link content to the legacy plan (skip existing links).
+            existing_links = {
+                (pc.plan_id, pc.content_id)
+                for pc in (await session.execute(
+                    select(PlanContent).filter(PlanContent.plan_id == LEGACY_PLAN_ID)
+                )).scalars().all()
+            }
+            linked = 0
+            for cid in legacy_content_ids:
+                if (LEGACY_PLAN_ID, cid) not in existing_links:
+                    session.add(PlanContent(plan_id=LEGACY_PLAN_ID, content_id=cid))
+                    linked += 1
+            if linked:
+                logger.info(f"Phase 0: linked {linked} content item(s) to the legacy plan.")
+
+        # 4. Convert existing access → plan_access for the legacy plan.
+        #    Sources: user_access rows (per-video) + User.has_full_access flag.
+        granted_users = set()
+        ua_rows = (await session.execute(select(UserAccess))).scalars().all()
+        for ua in ua_rows:
+            granted_users.add(ua.telegram_id)
+        flag_users = (await session.execute(
+            select(User).filter(User.has_full_access == True)
+        )).scalars().all()
+        for u in flag_users:
+            granted_users.add(u.telegram_id)
+
+        if granted_users and legacy_content_ids:
+            existing_access = {
+                pa.telegram_id
+                for pa in (await session.execute(
+                    select(PlanAccess).filter(PlanAccess.plan_id == LEGACY_PLAN_ID)
+                )).scalars().all()
+            }
+            migrated_access = 0
+            for tid in granted_users:
+                if tid not in existing_access:
+                    session.add(PlanAccess(telegram_id=tid, plan_id=LEGACY_PLAN_ID))
+                    migrated_access += 1
+            if migrated_access:
+                logger.info(f"Phase 0: migrated {migrated_access} user(s) into legacy plan_access.")

@@ -127,6 +127,65 @@ def schedule_video_deletion(bot, chat_id: int, message_id: int, session_id: int,
     )
     logger.info(f"Scheduled deletion of message {message_id} for session {session_id} (video {video_id}) in {delay_seconds} seconds.")
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Demo Bot — self-destructing demo media (Phase 4).
+# Note: jobs live in an in-memory store, so a process restart cancels pending
+# deletions (same behaviour as the legacy preview deletion). For a 200s demo
+# this is an acceptable edge case.
+# ──────────────────────────────────────────────────────────────────────────────
+
+async def delete_demo_message(bot, chat_id: int, message_ids, plan_id: str = ""):
+    """Deletes the demo message(s) and sends an expiry notice with a Buy link."""
+    if isinstance(message_ids, int):
+        message_ids = [message_ids]
+
+    for mid in message_ids:
+        try:
+            await bot.delete_message(chat_id=chat_id, message_id=mid)
+        except BadRequest as e:
+            logger.warning(f"Could not delete demo message {mid} in chat {chat_id}: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error deleting demo message {mid}: {e}", exc_info=True)
+
+    # Send the expiry notice with a deep link to the Payment bot.
+    try:
+        from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+        from bot.services.sessions import build_deep_link
+        from bot.services.plans import get_plan
+
+        plan = await get_plan(plan_id) if plan_id else None
+        pay_link = build_deep_link("payment", plan_id) if plan_id else build_deep_link("payment")
+        title = plan.name if plan else "the full plan"
+        price_txt = f" — ₹{plan.price_inr}" if plan else ""
+
+        buttons = []
+        if pay_link:
+            buttons.append([InlineKeyboardButton(f"💳 Buy {title}{price_txt}", url=pay_link)])
+
+        await bot.send_message(
+            chat_id=chat_id,
+            text=f"⏰ Your demo has expired.\n\nUnlock '{title}' to watch the full content.",
+            reply_markup=InlineKeyboardMarkup(buttons) if buttons else None,
+        )
+    except Exception as e:
+        logger.error(f"Failed to send demo expiry notice to chat {chat_id}: {e}", exc_info=True)
+
+
+def schedule_demo_expiry(bot, chat_id: int, message_ids, plan_id: str = "", delay_seconds: int = 200):
+    """Schedule deletion of demo media after delay_seconds, then an expiry notice."""
+    run_date = datetime.now() + timedelta(seconds=delay_seconds)
+    # Unique job id per chat+first message so repeated demos don't clash.
+    first_mid = message_ids[0] if isinstance(message_ids, (list, tuple)) else message_ids
+    scheduler.add_job(
+        delete_demo_message,
+        trigger=DateTrigger(run_date=run_date),
+        args=[bot, chat_id, message_ids, plan_id],
+        id=f"demo_expire_{chat_id}_{first_mid}",
+        replace_existing=True,
+    )
+    logger.info(f"Scheduled demo expiry for chat {chat_id} (plan {plan_id}) in {delay_seconds}s.")
+
 async def send_daily_reminders(bot):
     """Sends a daily follow-up reminder to users who watched the preview but did not buy access."""
     logger.info("Running daily reminders background job...")

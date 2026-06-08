@@ -60,3 +60,8 @@ def get_video_price() -> int:
         return int(get_config("FULL_VIDEO_PRICE_INR", str(settings.FULL_VIDEO_PRICE_INR)))
     except (ValueError, TypeError):
         return settings.FULL_VIDEO_PRICE_INR
+
+
+def get_payment_qr() -> str:
+    """Payment QR file_id/URL — DB-config override of the env default (set via /setqr)."""
+    return get_config("PAYMENT_QR_FILE_ID", settings.PAYMENT_QR_FILE_ID)
