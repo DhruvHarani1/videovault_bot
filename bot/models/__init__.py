@@ -1,1 +1,15 @@
-from bot.models.user import Base, User, PreviewSession, Payment, VideoView, BotConfig, get_db, init_db, AsyncSessionLocal, engine
+from bot.models.user import (
+    Base,
+    User,
+    Video,
+    UserAccess,
+    PreviewSession,
+    Payment,
+    VideoView,
+    BotConfig,
+    get_db,
+    init_db,
+    seed_legacy_video_if_needed,
+    AsyncSessionLocal,
+    engine,
+)

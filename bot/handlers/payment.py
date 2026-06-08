@@ -4,14 +4,16 @@ from telegram.ext import ContextTypes
 import razorpay
 from razorpay.errors import BadRequestError
 from bot.config import settings
-from bot.services import check_user_access, grant_user_access, get_video_price
+from bot.services import check_user_access, grant_user_access
+from bot.services.videos import get_video
 from sqlalchemy.future import select
 from bot.models import get_db, Payment
 import logging
 
 logger = logging.getLogger(__name__)
 
-# Initialize Razorpay Client (will fail/warn if keys are not set, so wrap or check)
+# Initialize Razorpay Client. We tolerate placeholder/dummy keys so the bot can
+# run end-to-end in dev mode and simulate captures.
 razorpay_client = None
 if settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET:
     if not settings.RAZORPAY_KEY_ID.startswith("rzp_test_dummy"):
@@ -21,32 +23,38 @@ if settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET:
         except Exception as e:
             logger.error(f"Failed to initialize Razorpay client: {e}")
 
-async def handle_buy_access(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Initiates the Razorpay order creation and presents payment buttons to the user."""
-    query = update.callback_query
-    chat_id = update.effective_chat.id
-    user_id = update.effective_user.id
 
-    # Extract video_id from callback_data (format "buy_access:video_001")
-    video_id = "video_001"
+def _video_id_from_callback(query, default: str = "video_001") -> str:
     if query and query.data and ":" in query.data:
-        video_id = query.data.split(":", 1)[1]
+        return query.data.split(":", 1)[1]
+    return default
 
-    # 1. Check if user already paid
-    has_access = await check_user_access(user_id)
-    if has_access:
-        keyboard = [
-            [InlineKeyboardButton("▶️ Watch Now", callback_data=f"watch_full:{video_id}")]
-        ]
-        text = "You already have full access!"
+
+async def handle_buy_access(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Initiates the Razorpay order creation for a specific video."""
+    query = update.callback_query
+    user_id = update.effective_user.id
+    video_id = _video_id_from_callback(query)
+
+    video = await get_video(video_id)
+    if not video or not video.is_active:
+        text = "❌ That video isn't available for purchase right now."
+        if query:
+            await query.message.reply_text(text)
+        else:
+            await update.message.reply_text(text)
+        return
+
+    if await check_user_access(user_id, video_id=video_id):
+        keyboard = [[InlineKeyboardButton("▶️ Watch Now", callback_data=f"watch_full:{video_id}")]]
+        text = f"You already have full access to '{video.title}'!"
         if query:
             await query.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
         else:
             await update.message.reply_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
         return
 
-    # 2. Create Razorpay order
-    price = get_video_price()
+    price = video.price_inr
     amount_in_paise = price * 100
     order_id = None
     payment_url = None
@@ -59,12 +67,12 @@ async def handle_buy_access(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                 "payment_capture": 1,
                 "notes": {
                     "telegram_id": str(user_id),
-                    "video_id": video_id
-                }
+                    "video_id": video_id,
+                },
             })
             order_id = order.get("id")
             payment_url = f"https://rzp.io/rzp/{order_id}"
-            logger.info(f"Created Razorpay order {order_id} for user {user_id}")
+            logger.info(f"Created Razorpay order {order_id} for user {user_id} (video {video_id})")
         except BadRequestError as e:
             logger.error(f"Razorpay BadRequestError: {e}", exc_info=True)
             error_text = "There was an issue creating your payment order. Please contact support."
@@ -75,26 +83,25 @@ async def handle_buy_access(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             return
         except Exception as e:
             logger.error(f"Unexpected Razorpay error: {e}", exc_info=True)
-            # Development simulation fallback
             order_id = f"order_mock_{user_id}_{int(datetime.utcnow().timestamp())}"
             payment_url = f"https://rzp.io/rzp/{order_id}"
             logger.info(f"Fallback to mock order {order_id} due to connection error.")
     else:
-        # Development simulation fallback
         order_id = f"order_mock_{user_id}_{int(datetime.utcnow().timestamp())}"
         payment_url = f"https://rzp.io/rzp/{order_id}"
         logger.info(f"Generated mock order {order_id} (simulation mode)")
 
-    # 3. Save order to payments table (status='pending')
+    # Save pending payment tagged with video_id
     try:
         async with get_db() as session:
             session.add(Payment(
                 telegram_id=user_id,
                 razorpay_order_id=order_id,
                 amount_inr=price,
-                status="pending"
+                video_id=video_id,
+                status="pending",
             ))
-            logger.info(f"Saved pending payment {order_id} to DB for user {user_id}")
+            logger.info(f"Saved pending payment {order_id} for user {user_id} (video {video_id})")
     except Exception as e:
         logger.error(f"Failed to save payment order to DB: {e}", exc_info=True)
         error_msg = "Database error processing your payment order. Please try again."
@@ -104,67 +111,65 @@ async def handle_buy_access(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             await update.message.reply_text(error_msg)
         return
 
-    # 4 & 5. Send payment options and text fallback
     keyboard = [
-        [
-            InlineKeyboardButton(f"💳 Pay ₹{price} on Razorpay", url=payment_url)
-        ],
-        [
-            InlineKeyboardButton("✅ I've Paid — Verify", callback_data=f"check_payment:{order_id}")
-        ]
+        [InlineKeyboardButton(f"💳 Pay ₹{price} on Razorpay", url=payment_url)],
+        [InlineKeyboardButton("✅ I've Paid — Verify", callback_data=f"check_payment:{order_id}")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     message_text = (
-        f"To unlock full video access, please complete the payment of ₹{price} via Razorpay.\n\n"
-        f"Payment ID: `{order_id}`\n\n"
+        f"To unlock '{video.title}', please complete the payment of ₹{price} via Razorpay.\n\n"
+        f"Order ID: `{order_id}`\n\n"
         "Once payment is completed, tap the **Verify** button below."
     )
 
     if query:
-        await query.message.reply_text(
-            text=message_text,
-            reply_markup=reply_markup,
-            parse_mode="Markdown"
-        )
+        await query.message.reply_text(text=message_text, reply_markup=reply_markup, parse_mode="Markdown")
     else:
-        await update.message.reply_text(
-            text=message_text,
-            reply_markup=reply_markup,
-            parse_mode="Markdown"
-        )
+        await update.message.reply_text(text=message_text, reply_markup=reply_markup, parse_mode="Markdown")
+
 
 async def pay_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Command fallback /pay to buy access."""
+    """/pay — without arg, opens the library."""
+    args = context.args if hasattr(context, "args") else []
+    if not args:
+        from bot.handlers.library import show_library
+        await show_library(update, context)
+        return
+    # Synthesize a callback-like data so handle_buy_access can pick up the video_id
+    class _FakeQuery:
+        def __init__(self, data, message):
+            self.data = data
+            self.message = message
+    fake = _FakeQuery(f"buy_access:{args[0]}", update.message)
+    update.callback_query = fake  # type: ignore[assignment]
     await handle_buy_access(update, context)
 
+
 async def payment_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handles inline keyboard callbacks for simulated payments (legacy mock)."""
+    """Legacy simulated payment callback (kept so the existing handler registration still works)."""
     query = update.callback_query
     await query.answer()
-    
     user_id = query.from_user.id
-    data = query.data
-
+    data = query.data or ""
     if data.startswith("pay_sim_"):
-        await grant_user_access(user_id)
+        # Legacy: grant access to the default video
+        await grant_user_access(user_id, video_id="video_001")
         await query.edit_message_text(
             "Payment Successful! 🎉\n\n"
-            "You now have lifetime access to the full video.\n"
-            "Use /watch to start watching!"
+            "You now have lifetime access. Use /library to start watching!"
         )
-        logger.info(f"User {user_id} successfully paid and was granted access (Data: {data})")
+        logger.info(f"User {user_id} successfully paid (sim) and was granted access (Data: {data})")
+
 
 async def handle_check_payment(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Triggered by 'Verify' button. Queries Razorpay API (or mocks) and updates DB access."""
+    """Triggered by 'Verify' button. Queries Razorpay (or mocks) and grants per-video access."""
     query = update.callback_query
-    # Note: CallbackRouter already answered query, but let's be safe.
     if not query:
         return
 
     user_id = query.from_user.id
     data = query.data
-
     if not data or ":" not in data:
         logger.warning(f"Malformed callback data in check_payment: {data}")
         return
@@ -172,7 +177,6 @@ async def handle_check_payment(update: Update, context: ContextTypes.DEFAULT_TYP
     order_id = data.split(":", 1)[1]
     logger.info(f"Verifying payment for order_id: {order_id}, user: {user_id}")
 
-    # 2. Fetch order from local DB
     async with get_db() as session:
         result = await session.execute(
             select(Payment).filter(Payment.razorpay_order_id == order_id)
@@ -189,28 +193,23 @@ async def handle_check_payment(update: Update, context: ContextTypes.DEFAULT_TYP
             await query.message.reply_text("Access denied: Order verification mismatch.")
             return
 
-    # If the database payment is already marked paid, just verify and exit
+        video_id = db_payment.video_id or "video_001"
+
+    # If already marked paid, idempotently grant access and exit
     if db_payment.status == "paid":
-        async with get_db() as session:
-            await grant_user_access(user_id, session)
-        keyboard = [[InlineKeyboardButton("📺 Watch Full Video", callback_data="watch_full:video_001")]]
+        await grant_user_access(user_id, video_id=video_id)
+        keyboard = [[InlineKeyboardButton("📺 Watch Full Video", callback_data=f"watch_full:{video_id}")]]
         await query.message.reply_text(
             "🎉 Payment already confirmed! Full video unlocked.",
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            reply_markup=InlineKeyboardMarkup(keyboard),
         )
         return
 
-    # 3. Call Razorpay API to fetch payments
     items = []
     is_mock = order_id.startswith("order_mock_")
-
     if is_mock or not razorpay_client:
-        # Development simulation mode: automatically treat mock orders as captured
         logger.info(f"Simulating payment capture for mock order: {order_id}")
-        items = [{
-            "id": f"pay_mock_{int(datetime.utcnow().timestamp())}",
-            "status": "captured"
-        }]
+        items = [{"id": f"pay_mock_{int(datetime.utcnow().timestamp())}", "status": "captured"}]
     else:
         try:
             payments = razorpay_client.order.payments(order_id)
@@ -220,7 +219,6 @@ async def handle_check_payment(update: Update, context: ContextTypes.DEFAULT_TYP
             await query.message.reply_text("Unable to verify payment with Razorpay. Please try again later.")
             return
 
-    # 4. Loop through payments and check status
     payment_status_captured = False
     payment_status_failed = False
     captured_item = None
@@ -235,7 +233,6 @@ async def handle_check_payment(update: Update, context: ContextTypes.DEFAULT_TYP
             payment_status_failed = True
 
     if payment_status_captured and captured_item:
-        # a. Update payments table in DB
         async with get_db() as session:
             result = await session.execute(
                 select(Payment).filter(Payment.razorpay_order_id == order_id)
@@ -245,21 +242,17 @@ async def handle_check_payment(update: Update, context: ContextTypes.DEFAULT_TYP
                 db_payment.status = "paid"
                 db_payment.razorpay_payment_id = captured_item["id"]
                 db_payment.paid_at = datetime.utcnow()
-                
-            # b. Grant access
-            await grant_user_access(user_id, session)
+            await grant_user_access(user_id, video_id=video_id, db=session)
 
-        logger.info(f"Payment {captured_item['id']} captured. Granted user {user_id} full access.")
-        
-        # c. Send success message
-        keyboard = [[InlineKeyboardButton("📺 Watch Full Video", callback_data="watch_full:video_001")]]
+        logger.info(f"Payment {captured_item['id']} captured. Granted user {user_id} access to {video_id}.")
+
+        keyboard = [[InlineKeyboardButton("📺 Watch Full Video", callback_data=f"watch_full:{video_id}")]]
         await query.message.reply_text(
             "🎉 Payment confirmed! Full video unlocked.",
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            reply_markup=InlineKeyboardMarkup(keyboard),
         )
 
     elif payment_status_failed:
-        # Update DB to failed
         async with get_db() as session:
             result = await session.execute(
                 select(Payment).filter(Payment.razorpay_order_id == order_id)
@@ -269,29 +262,30 @@ async def handle_check_payment(update: Update, context: ContextTypes.DEFAULT_TYP
                 db_payment.status = "failed"
 
         logger.info(f"Payment failed for order {order_id} (user {user_id}).")
-        
-        # Check failed payments alert trigger
+
         from bot.services.monitoring import check_failed_payments_alert
         await check_failed_payments_alert(context.bot)
 
-        keyboard = [[InlineKeyboardButton("💳 Retry Payment", callback_data="buy_access:video_001")]]
+        keyboard = [[InlineKeyboardButton("💳 Retry Payment", callback_data=f"buy_access:{video_id}")]]
         await query.message.reply_text(
             "❌ Payment failed. Try again?",
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            reply_markup=InlineKeyboardMarkup(keyboard),
         )
 
     else:
-        # Still pending / no payment attempt found
         logger.info(f"Payment for order {order_id} (user {user_id}) is still pending/unattempted.")
         payment_url = f"https://rzp.io/rzp/{order_id}"
+        video = await get_video(video_id)
+        price = video.price_inr if video else 0
         keyboard = [
             [InlineKeyboardButton("✅ Check Again", callback_data=f"check_payment:{order_id}")],
-            [InlineKeyboardButton(f"💳 Pay Now (₹{get_video_price()})", url=payment_url)]
+            [InlineKeyboardButton(f"💳 Pay Now (₹{price})", url=payment_url)],
         ]
         await query.message.reply_text(
             "⏳ Payment not received yet. Please complete payment and try again in a minute.",
-            reply_markup=InlineKeyboardMarkup(keyboard)
+            reply_markup=InlineKeyboardMarkup(keyboard),
         )
+
 
 def verify_webhook_signature(request_body: bytes, signature: str) -> bool:
     """Verifies the signature of a Razorpay webhook payload."""
@@ -304,21 +298,18 @@ def verify_webhook_signature(request_body: bytes, signature: str) -> bool:
             razorpay_client.utility.verify_webhook_signature(
                 request_body.decode("utf-8"),
                 signature,
-                settings.RAZORPAY_WEBHOOK_SECRET
+                settings.RAZORPAY_WEBHOOK_SECRET,
             )
             return True
         else:
-            # Bypass validation in local simulation mode if dummy keys are used
             if settings.RAZORPAY_KEY_ID.startswith("rzp_test_dummy"):
                 logger.info("Simulating signature verification (dummy keys detected).")
                 return True
-            
-            # Non-client direct validation
             utility = razorpay.Utility(None)
             utility.verify_webhook_signature(
                 request_body.decode("utf-8"),
                 signature,
-                settings.RAZORPAY_WEBHOOK_SECRET
+                settings.RAZORPAY_WEBHOOK_SECRET,
             )
             return True
     except Exception as e:

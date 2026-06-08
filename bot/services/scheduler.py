@@ -70,10 +70,10 @@ def start_scheduler(bot=None):
             logger.info("Scheduled DB size warning check (every 1 hour).")
 
 
-async def delete_preview_message(bot, chat_id: int, message_id: int, session_id: int):
+async def delete_preview_message(bot, chat_id: int, message_id: int, session_id: int, video_id: str = "video_001"):
     """Deletes the preview video message and marks it as deleted in the database."""
     logger.info(f"Attempting to delete preview message {message_id} in chat {chat_id} for session {session_id}")
-    
+
     try:
         await bot.delete_message(chat_id=chat_id, message_id=message_id)
         logger.info(f"Successfully deleted message {message_id} from chat {chat_id}")
@@ -82,7 +82,6 @@ async def delete_preview_message(bot, chat_id: int, message_id: int, session_id:
     except Exception as e:
         logger.error(f"Unexpected error when deleting message {message_id}: {e}", exc_info=True)
 
-    # Mark the session as deleted in DB
     try:
         async with get_db() as session:
             result = await session.execute(select(PreviewSession).filter(PreviewSession.id == session_id))
@@ -93,37 +92,40 @@ async def delete_preview_message(bot, chat_id: int, message_id: int, session_id:
     except Exception as e:
         logger.error(f"Failed to update preview session {session_id} to deleted: {e}", exc_info=True)
 
-    # Automatically send the post-preview purchase prompt
+    # Send post-preview purchase prompt with the video-specific price
     try:
         from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-        from bot.services import get_video_price
-        price = get_video_price()
+        from bot.services.videos import get_video
+        video = await get_video(video_id)
+        price = video.price_inr if video else 0
+        title = video.title if video else "the video"
+
         keyboard = [
-            [
-                InlineKeyboardButton(f"💳 Buy Now — ₹{price}", callback_data="buy_access:video_001")
-            ]
+            [InlineKeyboardButton(f"💳 Buy Now — ₹{price}", callback_data=f"buy_access:{video_id}")],
+            [InlineKeyboardButton("📚 Back to Library", callback_data="library")],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
+        # Title is escaped via send_message without parse_mode to avoid MD parse errors
         await bot.send_message(
             chat_id=chat_id,
-            text=f"⏰ Preview ended\\! Unlock the full video for just ₹{price}",
-            parse_mode="MarkdownV2",
-            reply_markup=reply_markup
+            text=f"⏰ Preview ended! Unlock '{title}' for just ₹{price}.",
+            reply_markup=reply_markup,
         )
     except Exception as e:
         logger.error(f"Failed to send follow-up message to chat {chat_id}: {e}", exc_info=True)
 
-def schedule_video_deletion(bot, chat_id: int, message_id: int, session_id: int, delay_seconds: int = 180):
+
+def schedule_video_deletion(bot, chat_id: int, message_id: int, session_id: int, delay_seconds: int = 180, video_id: str = "video_001"):
     """Schedules the delete_preview_message job using APScheduler."""
     run_date = datetime.now() + timedelta(seconds=delay_seconds)
     scheduler.add_job(
         delete_preview_message,
         trigger=DateTrigger(run_date=run_date),
-        args=[bot, chat_id, message_id, session_id],
+        args=[bot, chat_id, message_id, session_id, video_id],
         id=f"delete_session_{session_id}",
         replace_existing=True
     )
-    logger.info(f"Scheduled deletion of message {message_id} for session {session_id} in {delay_seconds} seconds.")
+    logger.info(f"Scheduled deletion of message {message_id} for session {session_id} (video {video_id}) in {delay_seconds} seconds.")
 
 async def send_daily_reminders(bot):
     """Sends a daily follow-up reminder to users who watched the preview but did not buy access."""
@@ -156,25 +158,19 @@ async def send_daily_reminders(bot):
             logger.info(f"Found {len(users_to_remind)} user(s) eligible for daily reminders.")
 
             from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-            from bot.services import get_video_price
-            price = get_video_price()
 
             for user in users_to_remind:
                 try:
                     keyboard = [
-                        [
-                            InlineKeyboardButton(f"💳 Buy Now — ₹{price}", callback_data="buy_access:video_001")
-                        ],
-                        [
-                            InlineKeyboardButton("🔕 Stop Reminders", callback_data="reminders_opt_out")
-                        ]
+                        [InlineKeyboardButton("📚 Browse Library", callback_data="library")],
+                        [InlineKeyboardButton("🔕 Stop Reminders", callback_data="reminders_opt_out")],
                     ]
                     reply_markup = InlineKeyboardMarkup(keyboard)
 
                     await bot.send_message(
                         chat_id=user.telegram_id,
-                        text=f"⏰ Still thinking? Don't miss out on unlocking the full video for just ₹{price}!",
-                        reply_markup=reply_markup
+                        text="⏰ Still thinking? Browse the library and unlock the videos you loved!",
+                        reply_markup=reply_markup,
                     )
                     
                     # Update reminders sent status in DB

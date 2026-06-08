@@ -5,6 +5,8 @@ from sqlalchemy.future import select
 from bot.config import settings
 from bot.models import get_db, User
 from bot.services import get_video_price
+from bot.services.videos import list_active_videos
+from bot.handlers.library import show_library
 import logging
 import re
 from bot.services.monitoring import update_last_message_time
@@ -25,47 +27,38 @@ def sanitize_input(text: str) -> str:
     return text.strip()
 
 async def show_onboarding_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Helper to display the onboarding welcome screen or watch full menu to a user."""
+    """Onboarding entry: show a welcome message then open the catalog.
+
+    With multiple videos there's no single 'watch full' button to offer; users always
+    flow through the catalog → per-video detail → preview/buy/watch.
+    """
     query = update.callback_query
-    user_id = update.effective_user.id
-    first_name = update.effective_user.first_name
+    first_name = update.effective_user.first_name or "there"
 
-    async with get_db() as session:
-        result = await session.execute(select(User).filter(User.telegram_id == user_id))
-        user = result.scalars().first()
-        has_full_access = user.has_full_access if user else False
+    videos = await list_active_videos()
+    safe_name = re.sub(r"[_*\[\]()~`#+\-=|{}.!\\]", "", first_name)
 
-    if has_full_access:
-        welcome_back_text = (
-            f"Welcome back, {first_name or 'there'}\\! You have full access to our premium content\\.\n\n"
-            "Enjoy watching\\!"
-        )
-        keyboard = [
-            [
-                InlineKeyboardButton("📺 Watch Full Video", callback_data="watch_full:video_001")
-            ]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        if query:
-            await query.message.edit_text(welcome_back_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
-        else:
-            await update.message.reply_text(welcome_back_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
-    else:
+    if not videos:
         welcome_text = (
-            "🎬 *Welcome to VideoVault\\!*\n"
-            "Get exclusive video content right here on Telegram\\.\n\n"
-            "👇 Tap below to watch a FREE 3\\-minute preview\\."
+            f"👋 Hi {safe_name}\\! Welcome to *VideoVault*\\.\n\n"
+            "No videos are available right now\\. Please check back soon\\!"
         )
-        keyboard = [
-            [
-                InlineKeyboardButton("▶️ Watch Free Preview", callback_data="start_preview:video_001")
-            ]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
         if query:
-            await query.message.edit_text(welcome_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
+            await query.message.edit_text(welcome_text, parse_mode=ParseMode.MARKDOWN_V2)
         else:
-            await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
+            await update.message.reply_text(welcome_text, parse_mode=ParseMode.MARKDOWN_V2)
+        return
+
+    welcome_text = (
+        f"👋 Hi {safe_name}\\! Welcome to *VideoVault*\\.\n\n"
+        "Browse the catalog below to watch a free preview or unlock the full video\\."
+    )
+    keyboard = [[InlineKeyboardButton("📚 Browse Library", callback_data="library")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    if query:
+        await query.message.edit_text(welcome_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
+    else:
+        await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
 
 async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handles the /start command. Registers/updates the user and displays onboarding options."""
@@ -109,22 +102,24 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Displays instructions on how the bot works."""
     update_last_message_time()
-    price = get_video_price()
     help_text = (
         "🆘 *How VideoVault works*\n\n"
-        "1️⃣ Tap \"Watch Free Preview\" to see a 3\\-minute clip\n"
-        "2️⃣ After 3 min, the preview disappears automatically\n"
-        "3️⃣ Tap \"Buy Full Access\" to pay ₹" + str(price) + " via Razorpay\n"
-        "4️⃣ Instantly get the full video unlocked\\!\n\n"
-        "Questions? Contact @YourSupportHandle"
+        "1️⃣ Use /library or tap \"Browse Library\" to see all videos\n"
+        "2️⃣ Pick a video and tap \"Watch Free Preview\" for a 3\\-min clip\n"
+        "3️⃣ The preview auto\\-deletes after 3 minutes\n"
+        "4️⃣ Tap \"Buy Full Access\" to pay via Razorpay and unlock the full video\n\n"
+        "Questions? Use /contact to message support\\."
     )
-    
-    keyboard = [[InlineKeyboardButton("🏠 Main Menu", callback_data="main_menu")]]
+
+    keyboard = [
+        [InlineKeyboardButton("📚 Browse Library", callback_data="library")],
+        [InlineKeyboardButton("🏠 Main Menu", callback_data="main_menu")],
+    ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text(
-        help_text, 
-        parse_mode=ParseMode.MARKDOWN_V2, 
+        help_text,
+        parse_mode=ParseMode.MARKDOWN_V2,
         reply_markup=reply_markup
     )
 

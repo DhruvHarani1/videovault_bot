@@ -10,7 +10,7 @@ from telegram.ext import Application, ContextTypes
 from telegram.error import NetworkError, TimedOut, Forbidden
 from sqlalchemy.future import select
 from bot.config import settings
-from bot.models import init_db, get_db, User
+from bot.models import init_db, get_db, User, seed_legacy_video_if_needed
 from bot.services import start_scheduler, preload_config, set_config
 
 INSTANCE_ID = str(uuid.uuid4())
@@ -109,6 +109,9 @@ async def run_startup_tasks(app_instance: Application) -> None:
     post_init in the manual-startup pattern used in polling mode."""
     logger.info("Initializing database...")
     await init_db()
+
+    logger.info("Seeding legacy video row (if needed)...")
+    await seed_legacy_video_if_needed()
 
     logger.info(f"Registering active instance ID: {INSTANCE_ID}")
     await set_config("ACTIVE_INSTANCE_ID", INSTANCE_ID)
