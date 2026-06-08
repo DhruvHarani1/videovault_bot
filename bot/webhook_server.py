@@ -72,16 +72,15 @@ async def razorpay_webhook(request: Request, x_razorpay_signature: str = Header(
                     return Response(status_code=200)
 
                 telegram_id = db_payment.telegram_id
+                video_id = db_payment.video_id or "video_001"
 
                 if db_payment.status != "paid":
-                    # Update local database
                     db_payment.status = "paid"
                     db_payment.razorpay_payment_id = payment_id
                     db_payment.paid_at = datetime.utcnow()
-                    
-                    # Grant access in database
-                    await grant_user_access(telegram_id, session)
-                    logger.info(f"Payment successful via Webhook for order {order_id}. User {telegram_id} access granted.")
+
+                    await grant_user_access(telegram_id, video_id=video_id, db=session)
+                    logger.info(f"Payment successful via Webhook for order {order_id}. User {telegram_id} access granted to {video_id}.")
 
             # Send confirmation message to the Telegram user
             try:

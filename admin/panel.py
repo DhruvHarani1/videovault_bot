@@ -21,7 +21,15 @@ from bot.services import (
     set_config,
     get_preview_video_id,
     get_full_video_id,
-    get_video_price
+    get_video_price,
+)
+from bot.services.videos import (
+    list_all_videos,
+    create_video,
+    set_video_active,
+    update_video_price,
+    update_video_files,
+    get_video,
 )
 
 logger = logging.getLogger(__name__)
@@ -208,41 +216,138 @@ async def broadcast_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         parse_mode=ParseMode.MARKDOWN
     )
 
-# Prompt 12: Guided Video Upload Flow
+# Legacy single-video upload flow. With the multi-video library this is now a
+# shortcut: it replaces the preview + full file_ids of video_001 in place.
+# For brand-new videos, prefer /addvideo.
 @admin_only
 async def upload_video_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Initiates guided flow to upload preview and full video content."""
+    """Replace the preview/full files on video_001. New videos: use /addvideo instead."""
     context.user_data["admin_state"] = "waiting_for_preview_video"
+    context.user_data["upload_target_video_id"] = "video_001"
     await update.message.reply_text(
-        "🎥 *Upload Video Flow*\n\n"
-        "Reply to this message with the **PREVIEW** video clip (maximum 3 minutes).",
-        parse_mode=ParseMode.MARKDOWN
+        "🎥 *Replace video_001 files*\n\n"
+        "Reply to this message with the **PREVIEW** video clip.\n"
+        "_For new videos use /addvideo instead._",
+        parse_mode=ParseMode.MARKDOWN,
     )
 
-# Prompt 12: Set video price
+
+# Multi-video guided add flow: title → price → preview → full
+@admin_only
+async def add_video_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Walks the admin through adding a new video to the library."""
+    context.user_data.pop("new_video", None)
+    context.user_data["new_video"] = {}
+    context.user_data["admin_state"] = "addvideo_waiting_title"
+    await update.message.reply_text(
+        "➕ *Add Video — Step 1 of 4*\n\n"
+        "Send the **title** for this video.\n"
+        "Type /canceladmin to abort.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
+async def cancel_admin_flow_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Cancels any guided admin flow."""
+    cancelled = bool(context.user_data.get("admin_state"))
+    context.user_data.pop("admin_state", None)
+    context.user_data.pop("new_video", None)
+    context.user_data.pop("upload_target_video_id", None)
+    if cancelled:
+        await update.message.reply_text("❌ Admin flow cancelled.")
+    else:
+        await update.message.reply_text("No admin flow in progress.")
+
+
+@admin_only
+async def list_videos_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Lists every video in the library (active and hidden)."""
+    videos = await list_all_videos()
+    if not videos:
+        await update.message.reply_text("📭 No videos in the library yet. Use /addvideo to add one.")
+        return
+
+    lines = ["📚 *Video Library*\n"]
+    for v in videos:
+        flag = "🟢" if v.is_active else "⚪"
+        lines.append(f"{flag} `{v.id}` — {v.title} — ₹{v.price_inr}")
+    lines.append("\n🟢 active, ⚪ hidden")
+    lines.append("Use `/removevideo <id>` to hide, `/restorevideo <id>` to restore.")
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
+
+
+@admin_only
+async def remove_video_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Soft-deletes a video (hides from user library, keeps DB rows)."""
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/removevideo <video_id>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    video_id = args[0]
+    ok = await set_video_active(video_id, False)
+    if ok:
+        await update.message.reply_text(f"✅ Video `{video_id}` is now hidden from the library.", parse_mode=ParseMode.MARKDOWN)
+    else:
+        await update.message.reply_text(f"❌ No video found with id `{video_id}`.", parse_mode=ParseMode.MARKDOWN)
+
+
+@admin_only
+async def restore_video_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Restores a previously hidden video."""
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/restorevideo <video_id>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    video_id = args[0]
+    ok = await set_video_active(video_id, True)
+    if ok:
+        await update.message.reply_text(f"✅ Video `{video_id}` is visible again.", parse_mode=ParseMode.MARKDOWN)
+    else:
+        await update.message.reply_text(f"❌ No video found with id `{video_id}`.", parse_mode=ParseMode.MARKDOWN)
+
+
+# Per-video price editor. Usage:
+#   /setprice                — show all video prices
+#   /setprice 250            — legacy, updates video_001 only
+#   /setprice video_002 250  — updates a specific video
 @admin_only
 async def set_price_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Updates video access price."""
+    """Updates the price of a specific video. Defaults to video_001 if only an amount is given."""
     args = context.args
-    old_price = get_video_price()
-    
+
     if not args:
-        await update.message.reply_text(
-            f"💰 Current access price is ₹{old_price}.\nTo update, use: `/setprice {{amount_inr}}`",
-            parse_mode=ParseMode.MARKDOWN
-        )
+        videos = await list_all_videos()
+        if not videos:
+            await update.message.reply_text("No videos in the library. Use /addvideo to add one.")
+            return
+        lines = ["💰 *Current prices*\n"]
+        for v in videos:
+            lines.append(f"`{v.id}` — {v.title} — ₹{v.price_inr}")
+        lines.append("\nUpdate with `/setprice <video_id> <amount>`.")
+        await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
         return
-        
+
+    if len(args) == 1:
+        target_id = "video_001"
+        amount_raw = args[0]
+    else:
+        target_id = args[0]
+        amount_raw = args[1]
+
     try:
-        new_price = int(args[0])
+        new_price = int(amount_raw)
         if new_price <= 0:
             raise ValueError()
     except ValueError:
         await update.message.reply_text("❌ Price must be a positive integer.")
         return
 
-    await set_config("FULL_VIDEO_PRICE_INR", str(new_price))
-    await update.message.reply_text(f"✅ Price updated to ₹{new_price} (was ₹{old_price}).")
+    ok = await update_video_price(target_id, new_price)
+    if ok:
+        await update.message.reply_text(f"✅ Price for `{target_id}` set to ₹{new_price}.", parse_mode=ParseMode.MARKDOWN)
+    else:
+        await update.message.reply_text(f"❌ No video found with id `{target_id}`.", parse_mode=ParseMode.MARKDOWN)
 
 # Prompt 12: Test Preview Video
 @admin_only
@@ -552,10 +657,12 @@ async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_T
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
-    # Prompt 12: guided video upload flows
+    # ────────── Legacy /uploadvideo flow — replaces files on an existing video ──────────
     elif admin_state == "waiting_for_preview_video":
         if msg.video:
             file_id = msg.video.file_id
+            context.user_data["pending_preview_file_id"] = file_id
+            # Also keep the legacy bot_config keys updated so the env-var fallback path keeps working
             await set_config("PREVIEW_VIDEO_FILE_ID", file_id)
             context.user_data["admin_state"] = "waiting_for_full_video"
             await update.message.reply_text("✅ Preview video saved!\n\nNow, send the **FULL** premium video.")
@@ -566,8 +673,91 @@ async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_T
         if msg.video:
             file_id = msg.video.file_id
             await set_config("FULL_VIDEO_FILE_ID", file_id)
+            target_id = context.user_data.get("upload_target_video_id", "video_001")
+            preview_id = context.user_data.get("pending_preview_file_id")
+            # If the video row exists, update its file_ids; otherwise create it with a default title/price.
+            updated = await update_video_files(target_id, preview_file_id=preview_id, full_file_id=file_id)
+            if not updated:
+                existing = await list_all_videos()
+                default_title = "Featured Video"
+                default_price = get_video_price()
+                await create_video(
+                    title=default_title,
+                    full_file_id=file_id,
+                    price_inr=default_price,
+                    preview_file_id=preview_id,
+                    video_id=target_id,
+                )
             context.user_data.pop("admin_state", None)
-            await update.message.reply_text("✅ Videos updated!")
+            context.user_data.pop("pending_preview_file_id", None)
+            context.user_data.pop("upload_target_video_id", None)
+            await update.message.reply_text(f"✅ Video `{target_id}` updated!", parse_mode=ParseMode.MARKDOWN)
+        else:
+            await update.message.reply_text("❌ Please reply with a valid video file.")
+
+    # ────────── /addvideo guided flow: title → price → preview → full ──────────
+    elif admin_state == "addvideo_waiting_title":
+        if msg.text:
+            context.user_data["new_video"]["title"] = msg.text.strip()
+            context.user_data["admin_state"] = "addvideo_waiting_price"
+            await update.message.reply_text(
+                "➕ *Add Video — Step 2 of 4*\n\nSend the **price in INR** (integer, e.g. `299`).",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        else:
+            await update.message.reply_text("❌ Please reply with text — the video title.")
+
+    elif admin_state == "addvideo_waiting_price":
+        if msg.text:
+            try:
+                price = int(msg.text.strip())
+                if price <= 0:
+                    raise ValueError()
+            except ValueError:
+                await update.message.reply_text("❌ Price must be a positive integer.")
+                return
+            context.user_data["new_video"]["price"] = price
+            context.user_data["admin_state"] = "addvideo_waiting_preview"
+            await update.message.reply_text(
+                "➕ *Add Video — Step 3 of 4*\n\nSend the **PREVIEW** video clip (3-min teaser).",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        else:
+            await update.message.reply_text("❌ Please send a number for the price.")
+
+    elif admin_state == "addvideo_waiting_preview":
+        if msg.video:
+            context.user_data["new_video"]["preview_file_id"] = msg.video.file_id
+            context.user_data["admin_state"] = "addvideo_waiting_full"
+            await update.message.reply_text(
+                "➕ *Add Video — Step 4 of 4*\n\nSend the **FULL** premium video.",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        else:
+            await update.message.reply_text("❌ Please reply with a valid video file.")
+
+    elif admin_state == "addvideo_waiting_full":
+        if msg.video:
+            data = context.user_data.get("new_video", {})
+            data["full_file_id"] = msg.video.file_id
+            try:
+                video = await create_video(
+                    title=data["title"],
+                    full_file_id=data["full_file_id"],
+                    price_inr=data["price"],
+                    preview_file_id=data.get("preview_file_id"),
+                )
+                await update.message.reply_text(
+                    f"✅ Created `{video.id}` — *{data['title']}* — ₹{data['price']}.\n"
+                    f"It's now visible to users in /library.",
+                    parse_mode=ParseMode.MARKDOWN,
+                )
+            except Exception as e:
+                logger.error(f"Failed to create video: {e}", exc_info=True)
+                await update.message.reply_text(f"❌ Failed to create video: {e}")
+            finally:
+                context.user_data.pop("admin_state", None)
+                context.user_data.pop("new_video", None)
         else:
             await update.message.reply_text("❌ Please reply with a valid video file.")
 
@@ -761,6 +951,14 @@ def setup_admin_handlers(app: Application) -> None:
     app.add_handler(CommandHandler("setprice", set_price_cmd))
     app.add_handler(CommandHandler("testpreview", test_preview_cmd))
     app.add_handler(CommandHandler("testfull", test_full_cmd))
+
+    # Multi-video library commands
+    app.add_handler(CommandHandler("addvideo", add_video_cmd))
+    app.add_handler(CommandHandler("listvideos", list_videos_cmd))
+    app.add_handler(CommandHandler("removevideo", remove_video_cmd))
+    app.add_handler(CommandHandler("restorevideo", restore_video_cmd))
+    # /canceladmin to avoid colliding with /cancel from the user-facing /contact conversation
+    app.add_handler(CommandHandler("canceladmin", cancel_admin_flow_cmd))
 
     # Prompt 13 commands
     app.add_handler(CommandHandler("user", user_lookup_cmd))
