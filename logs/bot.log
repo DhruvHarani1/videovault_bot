@@ -1021,3 +1021,793 @@ telegram.error.Conflict: Conflict: can't use getUpdates method while webhook is 
 2026-06-09 00:49:11,733 | INFO | bot.handlers.payment | Saved pending payment order_SzFYT14FkF7KwT for user 1146010950 (video video_002)
 2026-06-09 00:49:21,726 | INFO | bot.handlers.video | Routing callback action 'start_preview' with param 'video_002' for user 1146010950
 2026-06-09 00:49:21,736 | INFO | bot.handlers.video | User 1146010950 requested preview for video_002 but already watched in last 24h.
+2026-06-09 00:55:27,324 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 00:55:27,953 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 00:55:28,577 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 00:55:29,223 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 00:55:29,223 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 00:55:29,224 | INFO | __main__ | Initializing database...
+2026-06-09 00:55:29,235 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 00:55:29,245 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 00:55:29,258 | INFO | __main__ | Registering active instance ID: 37b11f2c-3570-4903-aff6-7b5545bd789c
+2026-06-09 00:55:29,260 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '37b11f2c-3570-4903-aff6-7b5545bd789c' to database.
+2026-06-09 00:55:29,269 | INFO | __main__ | Preloading configuration...
+2026-06-09 00:55:29,272 | INFO | bot.services.config | Preloaded 1 configuration(s) into memory cache.
+2026-06-09 00:55:30,006 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:55:30,006 | INFO | telegram.ext.Application | Application started
+2026-06-09 00:55:30,215 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 00:55:30,655 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:55:30,656 | INFO | telegram.ext.Application | Application started
+2026-06-09 00:55:30,804 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 00:55:31,731 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:55:31,731 | INFO | telegram.ext.Application | Application started
+2026-06-09 00:55:31,884 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 00:55:32,423 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:55:32,423 | INFO | telegram.ext.Application | Application started
+2026-06-09 00:55:32,605 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 00:55:32,605 | INFO | __main__ | Starting scheduler...
+2026-06-09 00:55:32,605 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 00:55:32,605 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 00:55:32,606 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 00:55:32,607 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 00:55:32,610 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 00:55:32,611 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 00:55:32,611 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 00:55:32,612 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 00:55:32,612 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 00:55:32,612 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 00:56:51,740 | INFO | bot.bots.demo | Demo /start payload from user 1146010950: 'plan_plan_001'
+2026-06-09 00:57:07,422 | INFO | bot.handlers.start | User 1146010950 (@Kedar0511) triggered /start
+2026-06-09 00:57:07,424 | INFO | bot.handlers.start | Existing user returned: <User telegram_id=1146010950 username=Kedar0511 has_full_access=False>
+2026-06-09 00:57:11,552 | INFO | bot.handlers.video | Routing callback action 'library' with param '' for user 1146010950
+2026-06-09 00:57:14,489 | INFO | bot.handlers.video | Routing callback action 'video' with param 'video_002' for user 1146010950
+2026-06-09 00:57:18,069 | INFO | bot.handlers.video | Routing callback action 'buy_access' with param 'video_002' for user 1146010950
+2026-06-09 00:57:18,733 | INFO | bot.handlers.payment | Created Razorpay order order_SzFh2bfp43MBsc for user 1146010950 (video video_002)
+2026-06-09 00:57:18,734 | INFO | bot.handlers.payment | Saved pending payment order_SzFh2bfp43MBsc for user 1146010950 (video video_002)
+2026-06-09 00:59:07,194 | INFO | bot.services.content | Created content content_0003: 'Untitled video' (video).
+2026-06-09 01:00:32,619 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:05:32 IST)" (scheduled at 2026-06-09 01:00:32.611306+05:30)
+2026-06-09 01:00:32,620 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:05:32 IST)" executed successfully
+2026-06-09 01:01:27,538 | INFO | bot.services.content | Linked content content_0003 to plan plan_001.
+2026-06-09 01:01:28,536 | ERROR | bot.error_handler | Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_application.py", line 1315, in process_update
+    await coroutine
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_handlers\basehandler.py", line 159, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\Downloads\videovault_bot\admin\panel.py", line 62, in wrapper
+    return await func_to_decorate(update, context, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\Downloads\videovault_bot\admin\panel.py", line 780, in link_content_cmd
+    await update.message.reply_text(
+        f"*Linking to `{plan_id}`:*\n" + "\n".join(results), parse_mode=ParseMode.MARKDOWN
+    )
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_message.py", line 2106, in reply_text
+    return await self.get_bot().send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<21 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 3118, in send_message
+    return await super().send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<23 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 1123, in send_message
+    return await self._send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<21 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 630, in _send_message
+    result = await super()._send_message(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<23 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 820, in _send_message
+    result = await self._post(
+             ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 704, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 370, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 733, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 198, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 375, in _request_wrapper
+    raise exception
+telegram.error.BadRequest: Can't parse entities: can't find end of the entity starting at byte offset 36
+2026-06-09 01:03:44,791 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 01:03:45,409 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 01:03:46,021 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 01:03:46,673 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 01:03:46,673 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 01:03:46,673 | INFO | __main__ | Initializing database...
+2026-06-09 01:03:46,684 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 01:03:46,693 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 01:03:46,705 | INFO | __main__ | Registering active instance ID: 62b7fca5-94f9-4c01-8b89-df0e0ad38489
+2026-06-09 01:03:46,715 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '62b7fca5-94f9-4c01-8b89-df0e0ad38489' to database.
+2026-06-09 01:03:46,724 | INFO | __main__ | Preloading configuration...
+2026-06-09 01:03:46,725 | INFO | bot.services.config | Preloaded 1 configuration(s) into memory cache.
+2026-06-09 01:03:47,415 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:03:47,415 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:03:47,550 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 01:03:48,240 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:03:48,241 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:03:48,454 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 01:03:48,893 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:03:48,893 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:03:49,031 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 01:03:49,443 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:03:49,443 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:03:49,580 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 01:03:49,581 | INFO | __main__ | Starting scheduler...
+2026-06-09 01:03:49,581 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:03:49,581 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 01:03:49,582 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 01:03:49,582 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 01:03:49,586 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 01:03:49,586 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 01:03:49,587 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 01:03:49,587 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 01:03:49,587 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 01:03:49,587 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 01:04:55,742 | INFO | bot.bots.demo | Demo /start payload from user 1146010950: 'plan_plan_001'
+2026-06-09 01:05:02,485 | INFO | bot.handlers.start | User 1146010950 (@Kedar0511) triggered /start
+2026-06-09 01:05:02,488 | INFO | bot.handlers.start | Existing user returned: <User telegram_id=1146010950 username=Kedar0511 has_full_access=False>
+2026-06-09 01:05:05,199 | INFO | bot.handlers.video | Routing callback action 'library' with param '' for user 1146010950
+2026-06-09 01:05:07,487 | INFO | bot.handlers.video | Routing callback action 'video' with param 'video_002' for user 1146010950
+2026-06-09 01:05:10,455 | INFO | bot.handlers.video | Routing callback action 'library' with param '' for user 1146010950
+2026-06-09 01:06:38,144 | INFO | bot.services.content | Linked content content_video_001 to plan plan_001.
+2026-06-09 01:11:04,887 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 01:11:05,499 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 01:11:06,102 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 01:11:06,726 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 01:11:06,727 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 01:11:06,727 | INFO | __main__ | Initializing database...
+2026-06-09 01:11:06,744 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 01:11:06,754 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 01:11:06,767 | INFO | __main__ | Registering active instance ID: 1e345f30-5d65-4c46-87d0-f15fb70dac4b
+2026-06-09 01:11:06,784 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '1e345f30-5d65-4c46-87d0-f15fb70dac4b' to database.
+2026-06-09 01:11:06,795 | INFO | __main__ | Preloading configuration...
+2026-06-09 01:11:06,796 | INFO | bot.services.config | Preloaded 1 configuration(s) into memory cache.
+2026-06-09 01:11:07,353 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:11:07,353 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:11:07,503 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 01:11:08,244 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:11:08,245 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:11:08,494 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 01:11:09,100 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:11:09,101 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:11:09,323 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 01:11:10,260 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:11:10,260 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:11:10,465 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 01:11:10,466 | INFO | __main__ | Starting scheduler...
+2026-06-09 01:11:10,466 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:11:10,466 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 01:11:10,467 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 01:11:10,468 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 01:11:10,472 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 01:11:10,472 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 01:11:10,472 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 01:11:10,472 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 01:11:10,472 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 01:11:10,472 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 01:16:10,480 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:21:10 IST)" (scheduled at 2026-06-09 01:16:10.472507+05:30)
+2026-06-09 01:16:10,481 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:21:10 IST)" executed successfully
+2026-06-09 01:16:19,081 | INFO | bot.bots.demo | Demo /start payload: 'plan_001'
+2026-06-09 01:16:19,848 | WARNING | bot.bots.demo | Demo preview_file_id send failed for plan_001: Wrong file identifier/http url specified
+2026-06-09 01:16:21,533 | WARNING | bot.bots.demo | Demo content fallback send failed for plan_001: Wrong file identifier/http url specified
+2026-06-09 01:16:32,930 | INFO | bot.handlers.start | User 1146010950 (@Kedar0511) triggered /start
+2026-06-09 01:16:32,931 | INFO | bot.handlers.start | Existing user returned: <User telegram_id=1146010950 username=Kedar0511 has_full_access=False>
+2026-06-09 01:16:35,925 | INFO | bot.handlers.video | Routing callback action 'library' with param '' for user 1146010950
+2026-06-09 01:16:40,839 | INFO | bot.bots.demo | Demo /start payload: 'plan_001'
+2026-06-09 01:16:41,945 | WARNING | bot.bots.demo | Demo preview_file_id send failed for plan_001: Wrong file identifier/http url specified
+2026-06-09 01:16:42,343 | WARNING | bot.bots.demo | Demo content fallback send failed for plan_001: Wrong file identifier/http url specified
+2026-06-09 01:18:19,885 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 01:18:20,512 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 01:18:21,138 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 01:18:21,772 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 01:18:21,772 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 01:18:21,772 | INFO | __main__ | Initializing database...
+2026-06-09 01:18:21,783 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 01:18:21,792 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 01:18:21,803 | INFO | __main__ | Registering active instance ID: 7016d613-cb85-4ead-8c7c-3f14c726f32a
+2026-06-09 01:18:21,809 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '7016d613-cb85-4ead-8c7c-3f14c726f32a' to database.
+2026-06-09 01:18:21,817 | INFO | __main__ | Preloading configuration...
+2026-06-09 01:18:21,819 | INFO | bot.services.config | Preloaded 1 configuration(s) into memory cache.
+2026-06-09 01:18:22,286 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:18:22,287 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:18:22,436 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 01:18:23,006 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:18:23,006 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:18:23,222 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 01:18:23,800 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:18:23,800 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:18:24,024 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 01:18:24,525 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:18:24,525 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:18:24,666 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 01:18:24,666 | INFO | __main__ | Starting scheduler...
+2026-06-09 01:18:24,666 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:18:24,666 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 01:18:24,668 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 01:18:24,668 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 01:18:24,672 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 01:18:24,673 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 01:18:24,673 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 01:18:24,673 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 01:18:24,673 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 01:18:24,673 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 01:22:40,054 | ERROR | telegram.ext.Updater | Exception happened while polling for updates.
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        pool_request.request
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 136, in handle_async_request
+    raise exc
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.READ_NUM_BYTES, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 279, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 161, in network_retry_loop
+    await do_action()
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 154, in do_action
+    action_cb_task.result()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_updater.py", line 340, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 672, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 4865, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 704, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 370, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 733, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 198, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 305, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 303, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ReadError: 
+2026-06-09 01:22:40,083 | ERROR | telegram.ext.Updater | Exception happened while polling for updates.
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        pool_request.request
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 136, in handle_async_request
+    raise exc
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.READ_NUM_BYTES, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 279, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 161, in network_retry_loop
+    await do_action()
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 154, in do_action
+    action_cb_task.result()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_updater.py", line 340, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 672, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 4865, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 704, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 370, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 733, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 198, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 305, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 303, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ReadError: 
+2026-06-09 01:22:40,087 | ERROR | telegram.ext.Updater | Exception happened while polling for updates.
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        pool_request.request
+        ^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\connection.py", line 103, in handle_async_request
+    return await self._connection.handle_async_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 136, in handle_async_request
+    raise exc
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 106, in handle_async_request
+    ) = await self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 177, in _receive_response_headers
+    event = await self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_async\http11.py", line 217, in _receive_event
+    data = await self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.READ_NUM_BYTES, timeout=timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_backends\anyio.py", line 32, in read
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 279, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 161, in network_retry_loop
+    await do_action()
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_utils\networkloop.py", line 154, in do_action
+    action_cb_task.result()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_updater.py", line 340, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 672, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<9 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 4865, in get_updates
+    await self._post(
+    ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    ),
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 704, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 370, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 733, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 198, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 305, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_httpxrequest.py", line 303, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ReadError: 
+2026-06-09 01:23:24,679 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:28:24 IST)" (scheduled at 2026-06-09 01:23:24.673181+05:30)
+2026-06-09 01:23:24,680 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:28:24 IST)" executed successfully
+2026-06-09 01:28:24,678 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:33:24 IST)" (scheduled at 2026-06-09 01:28:24.673181+05:30)
+2026-06-09 01:28:24,678 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:33:24 IST)" executed successfully
+2026-06-09 01:31:25,720 | INFO | bot.bots.demo | Demo /start payload: 'plan_001'
+2026-06-09 01:31:26,339 | WARNING | bot.bots.demo | Demo preview_file_id send failed for plan_001: Wrong file identifier/http url specified
+2026-06-09 01:31:26,662 | WARNING | bot.bots.demo | Demo content 'content_0003' send failed for plan_001: Wrong file identifier/http url specified
+2026-06-09 01:31:27,011 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
+2026-06-09 01:31:27,011 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 1146010950 (plan plan_001) in 200s.
+2026-06-09 01:31:37,934 | INFO | bot.bots.demo | Demo /start payload: 'plan_001'
+2026-06-09 01:31:38,610 | WARNING | bot.bots.demo | Demo preview_file_id send failed for plan_001: Wrong file identifier/http url specified
+2026-06-09 01:31:39,025 | WARNING | bot.bots.demo | Demo content 'content_0003' send failed for plan_001: Wrong file identifier/http url specified
+2026-06-09 01:31:39,367 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
+2026-06-09 01:31:39,368 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 1146010950 (plan plan_001) in 200s.
+2026-06-09 01:31:51,014 | INFO | bot.bots.demo | Demo /start payload: 'plan_002'
+2026-06-09 01:33:03,279 | INFO | bot.bots.demo | Demo /start payload: 'plan_001'
+2026-06-09 01:33:03,938 | WARNING | bot.bots.demo | Demo preview_file_id send failed for plan_001: Wrong file identifier/http url specified
+2026-06-09 01:33:04,270 | WARNING | bot.bots.demo | Demo content 'content_0003' send failed for plan_001: Wrong file identifier/http url specified
+2026-06-09 01:33:04,619 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
+2026-06-09 01:33:04,620 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 1146010950 (plan plan_001) in 200s.
+2026-06-09 01:33:24,688 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:38:24 IST)" (scheduled at 2026-06-09 01:33:24.673181+05:30)
+2026-06-09 01:33:24,688 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:38:24 IST)" executed successfully
+2026-06-09 01:33:40,746 | INFO | bot.bots.demo | Demo /start payload: 'plan_003'
+2026-06-09 01:33:41,338 | WARNING | bot.bots.demo | Demo preview_file_id send failed for plan_003: Wrong file identifier/http url specified
+2026-06-09 01:34:47,012 | INFO | apscheduler.scheduler | Removed job demo_expire_1146010950_12
+2026-06-09 01:34:47,012 | INFO | apscheduler.executors.default | Running job "delete_demo_message (trigger: date[2026-06-09 01:34:47 IST], next run at: 2026-06-09 01:34:47 IST)" (scheduled at 2026-06-09 01:34:47.011067+05:30)
+2026-06-09 01:34:48,085 | INFO | apscheduler.executors.default | Job "delete_demo_message (trigger: date[2026-06-09 01:34:47 IST], next run at: 2026-06-09 01:34:47 IST)" executed successfully
+2026-06-09 01:34:59,374 | INFO | apscheduler.scheduler | Removed job demo_expire_1146010950_14
+2026-06-09 01:34:59,374 | INFO | apscheduler.executors.default | Running job "delete_demo_message (trigger: date[2026-06-09 01:34:59 IST], next run at: 2026-06-09 01:34:59 IST)" (scheduled at 2026-06-09 01:34:59.367435+05:30)
+2026-06-09 01:35:00,416 | INFO | apscheduler.executors.default | Job "delete_demo_message (trigger: date[2026-06-09 01:34:59 IST], next run at: 2026-06-09 01:34:59 IST)" executed successfully
+2026-06-09 01:36:06,738 | INFO | bot.handlers.start | User 1146010950 (@Kedar0511) triggered /start
+2026-06-09 01:36:06,741 | INFO | bot.handlers.start | Existing user returned: <User telegram_id=1146010950 username=Kedar0511 has_full_access=False>
+2026-06-09 01:36:10,774 | INFO | bot.handlers.video | Routing callback action 'library' with param '' for user 1146010950
+2026-06-09 01:36:24,634 | INFO | apscheduler.scheduler | Removed job demo_expire_1146010950_18
+2026-06-09 01:36:24,635 | INFO | apscheduler.executors.default | Running job "delete_demo_message (trigger: date[2026-06-09 01:36:24 IST], next run at: 2026-06-09 01:36:24 IST)" (scheduled at 2026-06-09 01:36:24.619424+05:30)
+2026-06-09 01:36:25,593 | INFO | apscheduler.executors.default | Job "delete_demo_message (trigger: date[2026-06-09 01:36:24 IST], next run at: 2026-06-09 01:36:24 IST)" executed successfully
+2026-06-09 01:38:24,679 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:43:24 IST)" (scheduled at 2026-06-09 01:38:24.673181+05:30)
+2026-06-09 01:38:24,680 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:43:24 IST)" executed successfully
+2026-06-09 01:43:24,674 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:48:24 IST)" (scheduled at 2026-06-09 01:43:24.673181+05:30)
+2026-06-09 01:43:24,674 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:48:24 IST)" executed successfully
+2026-06-09 01:48:24,680 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:53:24 IST)" (scheduled at 2026-06-09 01:48:24.673181+05:30)
+2026-06-09 01:48:24,681 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 01:53:24 IST)" executed successfully
+2026-06-09 01:55:08,849 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 01:55:09,518 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 01:55:10,183 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 01:55:10,850 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 01:55:10,850 | INFO | __main__ | Starting VideoVault in WEBHOOK mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 01:55:10,875 | INFO | __main__ | Initializing database...
+2026-06-09 01:55:10,891 | INFO | bot.models.user | Migrating: adding content_items.storage_msg_id (INTEGER).
+2026-06-09 01:55:10,903 | INFO | bot.models.user | Migrating: adding plans.preview_msg_id (INTEGER).
+2026-06-09 01:55:10,910 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 01:55:10,921 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 01:55:10,934 | INFO | __main__ | Registering active instance ID: 20143c5b-fd99-464d-81ea-f4cc8ef65b18
+2026-06-09 01:55:10,936 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '20143c5b-fd99-464d-81ea-f4cc8ef65b18' to database.
+2026-06-09 01:55:10,945 | INFO | __main__ | Preloading configuration...
+2026-06-09 01:55:10,946 | INFO | bot.services.config | Preloaded 1 configuration(s) into memory cache.
+2026-06-09 01:55:11,421 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:55:11,422 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:55:11,894 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:55:11,894 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:55:12,350 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:55:12,350 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:55:12,791 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:55:12,791 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:55:12,792 | INFO | __main__ | Starting scheduler...
+2026-06-09 01:55:12,792 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:55:12,792 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 01:55:12,793 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 01:55:12,793 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 01:55:12,796 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 01:55:12,796 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 01:55:12,796 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 01:55:12,796 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 01:55:12,797 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 01:55:12,797 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 01:55:12,797 | INFO | __main__ | Setting webhook for 'sales' bot → https://videovault-bot.onrender.com/telegram/sales
+2026-06-09 01:55:12,960 | INFO | __main__ | Setting webhook for 'demo' bot → https://videovault-bot.onrender.com/telegram/demo
+2026-06-09 01:55:13,736 | INFO | __main__ | Setting webhook for 'payment' bot → https://videovault-bot.onrender.com/telegram/payment
+2026-06-09 01:55:13,903 | INFO | __main__ | Setting webhook for 'file' bot → https://videovault-bot.onrender.com/telegram/file
+2026-06-09 01:55:14,068 | INFO | __main__ | All 4 bot(s) initialized and ready (webhook mode).
+2026-06-09 01:55:41,839 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 01:55:42,501 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 01:55:43,159 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 01:55:43,813 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 01:55:43,813 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 01:55:43,813 | INFO | __main__ | Initializing database...
+2026-06-09 01:55:43,827 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 01:55:43,837 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 01:55:43,852 | INFO | __main__ | Registering active instance ID: b66c5317-b424-48ca-9a1a-9b3d5fb4c7b1
+2026-06-09 01:55:43,856 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = 'b66c5317-b424-48ca-9a1a-9b3d5fb4c7b1' to database.
+2026-06-09 01:55:43,866 | INFO | __main__ | Preloading configuration...
+2026-06-09 01:55:43,868 | INFO | bot.services.config | Preloaded 1 configuration(s) into memory cache.
+2026-06-09 01:55:44,334 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:55:44,335 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:55:44,478 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 01:55:44,918 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:55:44,918 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:55:45,062 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 01:55:45,479 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:55:45,480 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:55:45,615 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 01:55:46,023 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:55:46,023 | INFO | telegram.ext.Application | Application started
+2026-06-09 01:55:46,160 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 01:55:46,160 | INFO | __main__ | Starting scheduler...
+2026-06-09 01:55:46,160 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 01:55:46,160 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 01:55:46,161 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 01:55:46,161 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 01:55:46,168 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 01:55:46,169 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 01:55:46,169 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 01:55:46,169 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 01:55:46,169 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 01:55:46,169 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 01:57:25,900 | INFO | bot.services.content | Created content content_0004: 'Untitled video' (video, storage_msg=3).
+2026-06-09 01:59:05,249 | INFO | bot.services.content | Linked content content_0004 to plan plan_003.
+2026-06-09 01:59:20,552 | INFO | bot.bots.demo | Demo /start payload: 'plan_003'
+2026-06-09 01:59:21,188 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
+2026-06-09 01:59:21,188 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 1146010950 (plan plan_003) in 200s.

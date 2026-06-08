@@ -149,6 +149,8 @@ class Plan(Base):
     price_inr: Mapped[int] = mapped_column(Integer, nullable=False)
     video_count: Mapped[int] = mapped_column(Integer, default=0)  # denormalized for display
     preview_file_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    # Channel message id of the demo preview in the storage channel (portable across bots).
+    preview_msg_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
 
@@ -162,7 +164,9 @@ class ContentItem(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True)  # 'content_0001'
     title: Mapped[str] = mapped_column(String, nullable=False)
-    file_id: Mapped[str] = mapped_column(String, nullable=False)
+    file_id: Mapped[str] = mapped_column(String, nullable=False)  # uploading-bot file_id or URL
+    # Channel message id in the storage channel — the portable, cross-bot reference.
+    storage_msg_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     media_type: Mapped[str] = mapped_column(String, default="video")  # video/photo/document
     category: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     tags: Mapped[Optional[str]] = mapped_column(String, nullable=True)  # comma-separated
@@ -284,11 +288,23 @@ async def _migrate_payments_add_video_id(conn) -> None:
         )
 
 
+async def _migrate_add_column(conn, table: str, column: str, coltype: str) -> None:
+    """SQLite-safe: add a nullable column to a table if it doesn't exist yet."""
+    result = await conn.execute(text(f"PRAGMA table_info({table})"))
+    cols = [row[1] for row in result.fetchall()]
+    if column not in cols:
+        logger.info(f"Migrating: adding {table}.{column} ({coltype}).")
+        await conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {coltype}"))
+
+
 async def init_db():
     """Initializes the database, creates all tables, and applies in-place migrations."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         await _migrate_payments_add_video_id(conn)
+        # Phase 4 storage-channel refs (additive, nullable).
+        await _migrate_add_column(conn, "content_items", "storage_msg_id", "INTEGER")
+        await _migrate_add_column(conn, "plans", "preview_msg_id", "INTEGER")
 
 
 async def seed_legacy_video_if_needed() -> None:

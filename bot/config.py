@@ -119,6 +119,14 @@ class Settings:
         # Payment QR / UPI image served by the Payment Bot (Telegram file_id or URL).
         self.PAYMENT_QR_FILE_ID = os.getenv("PAYMENT_QR_FILE_ID", "")
 
+        # Shared storage/library channel id (e.g. -1004297523216). All 4 bots must be
+        # admins of it. Content is copied into this channel once; any bot then delivers
+        # via copy_message — the portable way to share media across bots.
+        try:
+            self.STORAGE_CHANNEL_ID = int(os.getenv("STORAGE_CHANNEL_ID", "0"))
+        except ValueError:
+            self.STORAGE_CHANNEL_ID = 0
+
         # Demo content expiry (seconds) for the Demo Bot.
         try:
             self.DEMO_EXPIRY_SECONDS = int(os.getenv("DEMO_EXPIRY_SECONDS", "200"))
