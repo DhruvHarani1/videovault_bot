@@ -259,8 +259,34 @@ class UserBotState(Base):
         return f"<UserBotState user={self.telegram_id} bot={self.bot_key}>"
 
 
+def _build_engine():
+    """Create the async engine, normalizing Postgres URLs for asyncpg + SSL.
+
+    Accepts SQLite (sqlite+aiosqlite://...) as well as Postgres URLs in any of the
+    common forms (postgres://, postgresql://, postgresql+asyncpg://). Managed
+    Postgres (Neon/Supabase/Render) requires SSL and benefits from pre-ping to
+    survive idle connection drops on serverless tiers."""
+    import re
+    url = settings.DATABASE_URL
+    connect_args = {}
+    kwargs = {"echo": False}
+
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+    if url.startswith("postgresql+asyncpg://"):
+        # asyncpg uses `ssl=`, not libpq's `sslmode=` — strip it and require SSL.
+        url = re.sub(r"[?&]sslmode=[^&]+", "", url)
+        connect_args["ssl"] = True
+        kwargs["pool_pre_ping"] = True
+
+    return create_async_engine(url, connect_args=connect_args, **kwargs)
+
+
 # Create async engine and sessionmaker
-engine = create_async_engine(settings.DATABASE_URL, echo=False)
+engine = _build_engine()
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
@@ -300,15 +326,22 @@ async def _migrate_add_column(conn, table: str, column: str, coltype: str) -> No
 
 
 async def init_db():
-    """Initializes the database, creates all tables, and applies in-place migrations."""
+    """Initializes the database, creates all tables, and applies in-place migrations.
+
+    create_all builds every table with all current columns, so a FRESH database
+    (e.g. a new Postgres) needs no migrations. The in-place ALTER/PRAGMA migrations
+    below are only for upgrading an EXISTING SQLite file and use SQLite-only syntax,
+    so we run them solely on the sqlite dialect. This keeps the app portable to
+    Postgres (for persistent storage on Render's free tier via an external DB)."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        await _migrate_payments_add_video_id(conn)
-        # Phase 4 storage-channel refs (additive, nullable).
-        await _migrate_add_column(conn, "content_items", "storage_msg_id", "INTEGER")
-        await _migrate_add_column(conn, "plans", "preview_msg_id", "INTEGER")
-        # Admin suspension flag (default 0 = not suspended).
-        await _migrate_add_column(conn, "users", "suspended", "BOOLEAN NOT NULL DEFAULT 0")
+        if engine.dialect.name == "sqlite":
+            await _migrate_payments_add_video_id(conn)
+            # Phase 4 storage-channel refs (additive, nullable).
+            await _migrate_add_column(conn, "content_items", "storage_msg_id", "INTEGER")
+            await _migrate_add_column(conn, "plans", "preview_msg_id", "INTEGER")
+            # Admin suspension flag (default 0 = not suspended).
+            await _migrate_add_column(conn, "users", "suspended", "BOOLEAN NOT NULL DEFAULT 0")
 
 
 async def seed_legacy_video_if_needed() -> None:
