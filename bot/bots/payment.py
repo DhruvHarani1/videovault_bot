@@ -12,6 +12,7 @@ Phase 5: manual payment-proof workflow (replaces Razorpay and the legacy library
 The admin panel (CMS, stats, broadcast, etc.) still lives on this bot via
 setup_admin_handlers. The legacy per-video library is intentionally dropped.
 """
+import asyncio
 import logging
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -22,7 +23,7 @@ from telegram.ext import (
 from bot.config import settings
 from bot.services.sessions import register_user_and_bot, build_deep_link, is_user_blocked
 from bot.services.plans import list_active_plans, get_plan
-from bot.services.config import get_payment_qr
+from bot.services.config import get_payment_qr, set_config
 from bot.services.access import has_plan_access, grant_plan_access
 from bot.services.tickets import create_ticket, get_ticket, set_ticket_status
 from bot.services.email import send_payment_proof_email, send_approval_email, send_rejection_email
@@ -39,6 +40,17 @@ def _normalize_plan_id(payload: str) -> str:
     if pid.startswith("plan_plan_"):
         pid = pid[len("plan_"):]
     return pid
+
+
+_bg_tasks = set()
+
+
+def _fire(coro) -> None:
+    """Run a coroutine in the background so the handler returns immediately
+    (keeps a reference so the task isn't garbage-collected mid-flight)."""
+    task = asyncio.create_task(coro)
+    _bg_tasks.add(task)
+    task.add_done_callback(_bg_tasks.discard)
 
 
 async def _safe_answer(query, text=None, show_alert=False) -> None:
@@ -95,7 +107,16 @@ async def show_payment_screen(update: Update, context: ContextTypes.DEFAULT_TYPE
     qr = get_payment_qr()
     if qr:
         try:
-            await context.bot.send_photo(chat_id=chat_id, photo=qr, caption=caption, reply_markup=markup, parse_mode="Markdown")
+            msg = await context.bot.send_photo(chat_id=chat_id, photo=qr, caption=caption, reply_markup=markup, parse_mode="Markdown")
+            # If the QR was sent from a URL, Telegram re-downloads it every time (slow).
+            # The response includes a file_id; persist it so every future send is an
+            # instant file_id send. This is what fixes the slow payment screen.
+            if msg.photo and str(qr).lower().startswith("http"):
+                try:
+                    await set_config("PAYMENT_QR_FILE_ID", msg.photo[-1].file_id)
+                    logger.info("Cached payment QR URL as a Telegram file_id for fast future sends.")
+                except Exception as ce:
+                    logger.warning(f"Could not cache QR file_id: {ce}")
             return
         except Exception as e:
             logger.warning(f"Failed to send QR photo: {e}")
@@ -203,16 +224,16 @@ async def on_proof_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         except Exception as e:
             logger.error(f"Failed to forward proof to admin {admin_id}: {e}")
 
-    # Email admins with the proof attached.
-    proof_bytes = await _download_proof(context.bot, proof_file_id)
-    try:
+    # Email admins with the proof attached — in the background so the user's flow
+    # isn't blocked by SMTP latency.
+    async def _email_proof():
+        proof_bytes = await _download_proof(context.bot, proof_file_id)
         await send_payment_proof_email(
             ticket_id=ticket.id, telegram_id=user.id, username=user.username,
             plan_name=plan.name, amount_inr=plan.price_inr,
             proof_bytes=proof_bytes, proof_filename=f"proof_{ticket.id}.jpg",
         )
-    except Exception as e:
-        logger.error(f"Failed to email payment proof: {e}")
+    _fire(_email_proof())
 
 
 async def _handle_review(update: Update, context: ContextTypes.DEFAULT_TYPE, action: str, param: str) -> None:
@@ -262,13 +283,11 @@ async def _handle_review(update: Update, context: ContextTypes.DEFAULT_TYPE, act
         except Exception:
             pass
 
-        try:
-            await send_approval_email(
-                ticket_id=ticket_id, telegram_id=ticket.telegram_id, username=None,
-                plan_name=plan_name, amount_inr=ticket.amount_inr, reviewed_by=admin.id,
-            )
-        except Exception as e:
-            logger.error(f"Approval email failed: {e}")
+        # Email in the background so the admin's tap returns instantly.
+        _fire(send_approval_email(
+            ticket_id=ticket_id, telegram_id=ticket.telegram_id, username=None,
+            plan_name=plan_name, amount_inr=ticket.amount_inr, reviewed_by=admin.id,
+        ))
 
     else:  # reject
         await set_ticket_status(ticket_id, "rejected", reviewed_by=admin.id, reason="Rejected by admin")
@@ -294,13 +313,12 @@ async def _handle_review(update: Update, context: ContextTypes.DEFAULT_TYPE, act
         except Exception:
             pass
 
-        try:
-            await send_rejection_email(
-                ticket_id=ticket_id, telegram_id=ticket.telegram_id, username=None,
-                plan_name=plan_name, amount_inr=ticket.amount_inr, reviewed_by=admin.id,
-            )
-        except Exception as e:
-            logger.error(f"Rejection email failed: {e}")
+        # Email in the background so the admin's tap returns instantly and the
+        # user's "Try Again" isn't queued behind SMTP latency.
+        _fire(send_rejection_email(
+            ticket_id=ticket_id, telegram_id=ticket.telegram_id, username=None,
+            plan_name=plan_name, amount_inr=ticket.amount_inr, reviewed_by=admin.id,
+        ))
 
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
