@@ -37,7 +37,11 @@ def build_all_applications() -> dict:
             logger.info(f"Bot '{key}' has no token configured — skipping.")
             continue
         try:
-            application = Application.builder().token(token).build()
+            # concurrent_updates(True): process updates in parallel so a slow handler
+            # (e.g. one sending an email) never blocks the next user's tap. Without it,
+            # PTB processes updates sequentially and a queued tap waits for the prior
+            # handler to finish — which made "Try Again" lag behind the reject email.
+            application = Application.builder().token(token).concurrent_updates(True).build()
             _REGISTRARS[key](application)
             application.add_error_handler(global_error_handler)
             apps[key] = application

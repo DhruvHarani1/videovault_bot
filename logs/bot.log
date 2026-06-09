@@ -2992,3 +2992,6 @@ telegram.error.BadRequest: Can't parse entities: can't find end of the entity st
 2026-06-09 13:57:08,357 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
 2026-06-09 13:57:08,357 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
 2026-06-09 14:14:32,208 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 14:52:18,588 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 15:12:38,582 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 15:18:51,433 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
