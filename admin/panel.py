@@ -1438,7 +1438,8 @@ async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_T
 async def admin_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handles admin panel callback queries (menus, stats, broadcasts, user operations)."""
     query = update.callback_query
-    await query.answer()
+    from bot.services.sessions import safe_answer
+    await safe_answer(query)
 
     user = query.from_user
     if not user or user.id not in settings.ADMIN_USER_IDS:

@@ -14,7 +14,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 from bot.config import settings
-from bot.services.sessions import register_user_and_bot, build_deep_link, is_user_blocked
+from bot.services.sessions import register_user_and_bot, build_deep_link, is_user_blocked, safe_answer
 from bot.services.plans import list_active_plans, get_plan
 from bot.services.content import list_content_for_plan
 from bot.services.delivery import deliver_plan_preview, deliver_content_item
@@ -122,7 +122,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     update_last_message_time()
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
     data = query.data or ""
     if data.startswith("demo:"):
         await _send_demo(update, context, data.split(":", 1)[1])

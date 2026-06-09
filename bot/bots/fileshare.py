@@ -13,7 +13,7 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-from bot.services.sessions import register_user_and_bot, build_deep_link, is_user_blocked
+from bot.services.sessions import register_user_and_bot, build_deep_link, is_user_blocked, safe_answer
 from bot.services.access import has_plan_access, list_user_plans
 from bot.services.plans import get_plan
 from bot.services.content import list_content_for_plan
@@ -128,7 +128,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     update_last_message_time()
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
     data = query.data or ""
     if data.startswith("collect:"):
         await deliver_plan(update, context, data.split(":", 1)[1])
