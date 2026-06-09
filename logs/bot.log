@@ -2394,3 +2394,55 @@ telegram.error.NetworkError: httpx.ReadError:
 2026-06-09 03:51:04,848 | INFO | apscheduler.scheduler | Removed job demo_expire_6138059719_30
 2026-06-09 03:51:04,848 | INFO | apscheduler.executors.default | Running job "delete_demo_message (trigger: date[2026-06-09 03:51:04 IST], next run at: 2026-06-09 03:51:04 IST)" (scheduled at 2026-06-09 03:51:04.844889+05:30)
 2026-06-09 03:51:05,847 | INFO | apscheduler.executors.default | Job "delete_demo_message (trigger: date[2026-06-09 03:51:04 IST], next run at: 2026-06-09 03:51:04 IST)" executed successfully
+2026-06-09 03:55:33,024 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 04:00:33 IST)" (scheduled at 2026-06-09 03:55:33.017474+05:30)
+2026-06-09 03:55:33,025 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 04:00:33 IST)" executed successfully
+2026-06-09 04:00:33,029 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 04:05:33 IST)" (scheduled at 2026-06-09 04:00:33.017474+05:30)
+2026-06-09 04:00:33,029 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 04:05:33 IST)" executed successfully
+2026-06-09 04:05:33,026 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 04:10:33 IST)" (scheduled at 2026-06-09 04:05:33.017474+05:30)
+2026-06-09 04:05:33,026 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 04:10:33 IST)" executed successfully
+2026-06-09 04:10:33,026 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 04:15:33 IST)" (scheduled at 2026-06-09 04:10:33.017474+05:30)
+2026-06-09 04:10:33,027 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 04:15:33 IST)" executed successfully
+2026-06-09 05:30:27,374 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 05:32:46,490 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 05:32:48,030 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 05:32:48,792 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 05:32:49,540 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 05:32:50,306 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 05:32:50,306 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 05:32:50,306 | INFO | __main__ | Initializing database...
+2026-06-09 05:32:50,326 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 05:32:50,337 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 05:32:50,385 | INFO | __main__ | Registering active instance ID: 8c0cb8aa-c651-4433-abdc-333d6d4fa943
+2026-06-09 05:32:50,387 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '8c0cb8aa-c651-4433-abdc-333d6d4fa943' to database.
+2026-06-09 05:32:50,401 | INFO | __main__ | Preloading configuration...
+2026-06-09 05:32:50,403 | INFO | bot.services.config | Preloaded 2 configuration(s) into memory cache.
+2026-06-09 05:32:51,066 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 05:32:51,066 | INFO | telegram.ext.Application | Application started
+2026-06-09 05:32:51,256 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 05:32:51,890 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 05:32:51,891 | INFO | telegram.ext.Application | Application started
+2026-06-09 05:32:52,094 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 05:32:52,703 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 05:32:52,703 | INFO | telegram.ext.Application | Application started
+2026-06-09 05:32:52,851 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 05:32:53,300 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 05:32:53,300 | INFO | telegram.ext.Application | Application started
+2026-06-09 05:32:53,529 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 05:32:53,529 | INFO | __main__ | Starting scheduler...
+2026-06-09 05:32:53,529 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 05:32:53,529 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 05:32:53,531 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 05:32:53,531 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 05:32:53,534 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 05:32:53,534 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 05:32:53,534 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 05:32:53,534 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 05:32:53,534 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 05:32:53,534 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 05:33:09,179 | INFO | bot.bots.demo | Demo /start payload: 'plan_003'
+2026-06-09 05:33:10,133 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
+2026-06-09 05:33:10,133 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 1146010950 (plan plan_003) in 200s.
+2026-06-09 05:33:14,728 | INFO | bot.bots.demo | Demo /start payload: ''
+2026-06-09 05:33:19,740 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
+2026-06-09 05:33:19,741 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 1146010950 (plan plan_001) in 200s.
+2026-06-09 05:33:25,530 | INFO | bot.bots.demo | Demo /start payload: ''
