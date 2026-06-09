@@ -13,7 +13,7 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-from bot.services.sessions import register_user_and_bot, build_deep_link
+from bot.services.sessions import register_user_and_bot, build_deep_link, is_user_blocked
 from bot.services.access import has_plan_access, list_user_plans
 from bot.services.plans import get_plan
 from bot.services.content import list_content_for_plan
@@ -38,6 +38,9 @@ def _normalize_plan_id(payload: str) -> str:
 async def deliver_plan(update: Update, context: ContextTypes.DEFAULT_TYPE, plan_id: str) -> None:
     chat_id = update.effective_chat.id
     user = update.effective_user
+
+    if await is_user_blocked(update, context):
+        return
 
     if not await has_plan_access(user.id, plan_id):
         pay_link = build_deep_link("payment", plan_id)
@@ -113,6 +116,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     update_last_message_time()
     if update.effective_user:
         await register_user_and_bot(update.effective_user, BOT_KEY)
+    if await is_user_blocked(update, context):
+        return
     plan_id = _normalize_plan_id(context.args[0] if context.args else "")
     if plan_id:
         await deliver_plan(update, context, plan_id)

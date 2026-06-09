@@ -14,7 +14,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 from bot.config import settings
-from bot.services.sessions import register_user_and_bot, build_deep_link
+from bot.services.sessions import register_user_and_bot, build_deep_link, is_user_blocked
 from bot.services.plans import list_active_plans, get_plan
 from bot.services.content import list_content_for_plan
 from bot.services.delivery import deliver_plan_preview, deliver_content_item
@@ -64,7 +64,25 @@ async def _send_demo(update: Update, context: ContextTypes.DEFAULT_TYPE, plan_id
         )
         return
 
-    # Schedule self-destruction + expiry notice.
+    # Immediately offer a persistent Buy button (and Back to Plans) so the user
+    # doesn't have to wait for the preview to expire before they can purchase.
+    pay_link = build_deep_link("payment", plan_id)
+    sales_link = build_deep_link("sales", "from_demo")
+    buttons = []
+    if pay_link:
+        buttons.append([InlineKeyboardButton(f"💳 Buy {plan.name} — ₹{plan.price_inr}", url=pay_link)])
+    if sales_link:
+        buttons.append([InlineKeyboardButton("🛍️ See Other Plans", url=sales_link)])
+    if buttons:
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=(f"👆 Your *{plan.name}* preview is playing (expires in {expiry}s).\n"
+                  f"Ready for the full content? Unlock it for ₹{plan.price_inr}."),
+            reply_markup=InlineKeyboardMarkup(buttons),
+            parse_mode="Markdown",
+        )
+
+    # Schedule self-destruction of the preview clip + a follow-up notice.
     schedule_demo_expiry(context.bot, chat_id, sent_message_id, plan_id=plan_id, delay_seconds=expiry)
 
 
@@ -84,6 +102,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     update_last_message_time()
     if update.effective_user:
         await register_user_and_bot(update.effective_user, BOT_KEY)
+    if await is_user_blocked(update, context):
+        return
 
     payload = context.args[0] if context.args else ""
     logger.info(f"Demo /start payload: '{payload}'")

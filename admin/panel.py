@@ -50,6 +50,15 @@ from bot.services.content import (
     list_content_for_plan,
 )
 from bot.services.delivery import store_media_in_channel
+from bot.services.users import (
+    list_paid_users,
+    list_free_users,
+    list_suspended_users,
+    set_suspended,
+    find_user,
+    user_overview,
+)
+from bot.services.access import revoke_plan_access, list_user_plans
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +75,74 @@ def _md(text) -> str:
     return text
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Telegram "/" command menus (setMyCommands). Public commands show to everyone;
+# the admin command list is scoped to each admin's chat on the Payment bot, so
+# only admins see admin commands when they type "/".
+# ──────────────────────────────────────────────────────────────────────────────
+
+PUBLIC_COMMAND_MENUS = {
+    "sales":   [("start", "Browse plans & buy"), ("plans", "View all plans"), ("help", "How it works")],
+    "demo":    [("start", "Watch a free demo")],
+    "payment": [("start", "Buy a plan"), ("help", "How it works")],
+    "file":    [("start", "Collect your content"), ("mycontent", "Your purchases")],
+}
+
+# (command, description) — shown to admins on the Payment bot when they type "/".
+ADMIN_COMMAND_MENU = [
+    ("admin", "Open the admin panel"),
+    ("stats", "Bot statistics"),
+    # Users
+    ("paidusers", "List paying users"),
+    ("freeusers", "List free users"),
+    ("suspendedusers", "List suspended users"),
+    ("userinfo", "Look up a user"),
+    ("removeaccess", "Revoke a user's plan"),
+    ("suspend", "Suspend a user"),
+    ("unsuspend", "Unsuspend a user"),
+    # Plans
+    ("listplans", "List plans"),
+    ("addplan", "Add a plan"),
+    ("setplanprice", "Set a plan's price"),
+    ("setplanpreview", "Set a plan's demo video"),
+    ("removeplan", "Hide a plan"),
+    ("restoreplan", "Restore a plan"),
+    # Content
+    ("listcontent", "List content"),
+    ("addcontent", "Upload content"),
+    ("linkcontent", "Link content to a plan"),
+    ("unlinkcontent", "Unlink content"),
+    ("plancontents", "Show a plan's content"),
+    # Payments & config
+    ("setqr", "Set the payment QR image"),
+    ("broadcast", "Broadcast a message"),
+    ("health", "System health"),
+    ("canceladmin", "Cancel the current flow"),
+    ("setcommands", "Refresh the / menu"),
+]
+
+
+async def apply_command_menus(bot, bot_key: str, admin_ids) -> None:
+    """Register the "/" command suggestions for a bot: public commands for everyone,
+    plus the admin command list scoped to each admin's chat (Payment bot only)."""
+    from telegram import BotCommand, BotCommandScopeDefault, BotCommandScopeChat
+
+    public = PUBLIC_COMMAND_MENUS.get(bot_key, [("start", "Start")])
+    try:
+        await bot.set_my_commands([BotCommand(c, d) for c, d in public], scope=BotCommandScopeDefault())
+    except Exception as e:
+        logger.error(f"Failed to set public commands for '{bot_key}': {e}")
+
+    if bot_key == "payment":
+        admin_cmds = [BotCommand(c, d) for c, d in ADMIN_COMMAND_MENU]
+        for aid in admin_ids:
+            try:
+                await bot.set_my_commands(admin_cmds, scope=BotCommandScopeChat(chat_id=aid))
+            except Exception as e:
+                # Admin may not have started the bot yet — harmless, will apply later.
+                logger.info(f"Could not set admin command menu for {aid} (not started yet?): {e}")
+
+
 def admin_only(func_to_decorate):
     """Decorator to restrict handler access to admin users only."""
     @wraps(func_to_decorate)
@@ -77,29 +154,55 @@ def admin_only(func_to_decorate):
         return await func_to_decorate(update, context, *args, **kwargs)
     return wrapper
 
+# Grouped, tappable command reference shown by /admin. Telegram makes every
+# /command token tappable, so the admin can run anything without memorizing it.
+ADMIN_PANEL_TEXT = (
+    "🛠 *VideoVault Admin Panel*\n"
+    "Tap any command below to run it. Type / anytime to see the full menu.\n\n"
+    "👥 *Users*\n"
+    "/paidusers — paying users\n"
+    "/freeusers — free users\n"
+    "/suspendedusers — suspended users\n"
+    "/userinfo — look up a user\n"
+    "/removeaccess — revoke a user's plan\n"
+    "/suspend · /unsuspend — block / unblock a user\n\n"
+    "📦 *Plans*\n"
+    "/listplans — list plans\n"
+    "/addplan — add a plan\n"
+    "/setplanprice — change price\n"
+    "/setplanpreview — set demo video\n"
+    "/removeplan · /restoreplan — hide / restore\n\n"
+    "🎞 *Content*\n"
+    "/listcontent — list content\n"
+    "/addcontent — upload content\n"
+    "/linkcontent · /unlinkcontent — attach / detach\n"
+    "/plancontents — a plan's content\n\n"
+    "💳 *Payments & Config*\n"
+    "/setqr — set payment QR\n"
+    "/broadcast — message users\n"
+    "/stats · /health — metrics\n"
+    "/canceladmin — cancel a flow\n"
+    "/setcommands — refresh the / menu"
+)
+
+
 @admin_only
 async def admin_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Displays the admin main menu."""
+    """Displays the admin command reference + quick-action buttons."""
     keyboard = [
         [
             InlineKeyboardButton("📊 Stats", callback_data="admin_stats"),
-            InlineKeyboardButton("👥 List Paid Users", callback_data="admin_list_paid:1")
+            InlineKeyboardButton("👥 Paid Users", callback_data="admin_list_paid:1"),
         ],
-        [
-            InlineKeyboardButton("📢 Broadcast Message", callback_data="admin_broadcast_init")
-        ],
-        [
-            InlineKeyboardButton("❌ Close Menu", callback_data="admin_close")
-        ]
+        [InlineKeyboardButton("📢 Broadcast", callback_data="admin_broadcast_init")],
+        [InlineKeyboardButton("❌ Close", callback_data="admin_close")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
-    msg_text = "🛠 *VideoVault Admin Panel*\n\nSelect an administrative action below:"
-    
+
     if update.message:
-        await update.message.reply_text(msg_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
+        await update.message.reply_text(ADMIN_PANEL_TEXT, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
     elif update.callback_query:
-        await update.callback_query.message.edit_text(msg_text, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN_V2)
+        await update.callback_query.message.edit_text(ADMIN_PANEL_TEXT, reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
 
 @admin_only
 async def stats_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -864,6 +967,165 @@ async def plan_contents_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# Phase 5+ — Plan-based user management (admin)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _page_arg(context) -> int:
+    try:
+        return max(1, int(context.args[0])) if context.args else 1
+    except (ValueError, IndexError):
+        return 1
+
+
+@admin_only
+async def paid_users_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    page = _page_arg(context)
+    data = await list_paid_users(page)
+    if data["total"] == 0:
+        await update.message.reply_text("No paid users yet.")
+        return
+    lines = [f"💰 *Paid users* — {data['total']} total (page {data['page']}/{data['pages']})\n"]
+    for u, plans in data["items"]:
+        uname = f"@{u.username}" if u.username else "—"
+        susp = " 🚫" if u.suspended else ""
+        plans_str = ", ".join(f"`{p}`" for p in plans)
+        lines.append(f"`{u.telegram_id}` {_md(uname)}{susp}\n   plans: {plans_str}")
+    lines.append(f"\nNext page: `/paidusers {data['page']+1}`" if data['page'] < data['pages'] else "")
+    await update.message.reply_text("\n".join(l for l in lines if l), parse_mode=ParseMode.MARKDOWN)
+
+
+@admin_only
+async def free_users_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    page = _page_arg(context)
+    data = await list_free_users(page)
+    if data["total"] == 0:
+        await update.message.reply_text("No free (non-paying) users.")
+        return
+    lines = [f"🆓 *Free users* — {data['total']} total (page {data['page']}/{data['pages']})\n"]
+    for u in data["items"]:
+        uname = f"@{u.username}" if u.username else "—"
+        lines.append(f"`{u.telegram_id}` {_md(uname)} {_md(u.first_name or '')}")
+    if data['page'] < data['pages']:
+        lines.append(f"\nNext page: `/freeusers {data['page']+1}`")
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
+
+
+@admin_only
+async def suspended_users_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    page = _page_arg(context)
+    data = await list_suspended_users(page)
+    if data["total"] == 0:
+        await update.message.reply_text("No suspended users.")
+        return
+    lines = [f"🚫 *Suspended users* — {data['total']} total (page {data['page']}/{data['pages']})\n"]
+    for u in data["items"]:
+        uname = f"@{u.username}" if u.username else "—"
+        lines.append(f"`{u.telegram_id}` {_md(uname)}")
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
+
+
+@admin_only
+async def userinfo_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not context.args:
+        await update.message.reply_text("Usage: `/userinfo <telegram_id | @username>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    user = await find_user(context.args[0])
+    if not user:
+        await update.message.reply_text("❌ User not found.")
+        return
+    ov = await user_overview(user.telegram_id)
+    plans = ov["plans"]
+    plans_str = ", ".join(f"`{p}`" for p in plans) if plans else "(none)"
+    tc = ov["ticket_counts"]
+    tickets = ", ".join(f"{k}: {v}" for k, v in tc.items()) or "none"
+    text = (
+        f"👤 *User* `{user.telegram_id}`\n"
+        f"Name: {_md(user.first_name or '—')}  Username: {_md('@'+user.username if user.username else '—')}\n"
+        f"Joined: {user.joined_at.strftime('%Y-%m-%d')}\n"
+        f"Status: {'🚫 SUSPENDED' if user.suspended else ('🔕 inactive' if not user.is_active else '✅ active')}\n"
+        f"Plans: {plans_str}\n"
+        f"Tickets: {tickets}\n\n"
+        f"`/removeaccess {user.telegram_id} all` · "
+        f"`/{'unsuspend' if user.suspended else 'suspend'} {user.telegram_id}`"
+    )
+    await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
+
+
+@admin_only
+async def remove_access_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Revoke a user's plan access. Usage: /removeaccess <id> <plan_id|all>"""
+    if len(context.args) < 2:
+        await update.message.reply_text("Usage: `/removeaccess <telegram_id> <plan_id|all>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    try:
+        target = int(context.args[0])
+    except ValueError:
+        await update.message.reply_text("❌ Telegram ID must be an integer.")
+        return
+    which = context.args[1]
+    if which == "all":
+        plans = await list_user_plans(target)
+        if not plans:
+            await update.message.reply_text("That user has no plan access.")
+            return
+        for pid in plans:
+            await revoke_plan_access(target, pid)
+        await update.message.reply_text(f"✅ Revoked all access ({len(plans)} plan(s)) from `{target}`.", parse_mode=ParseMode.MARKDOWN)
+    else:
+        await revoke_plan_access(target, which)
+        await update.message.reply_text(f"✅ Revoked `{which}` from `{target}`.", parse_mode=ParseMode.MARKDOWN)
+    # Notify the user.
+    try:
+        await context.bot.send_message(chat_id=target, text="ℹ️ Your access to a plan has been removed. Contact support if this is unexpected.")
+    except Exception:
+        pass
+
+
+@admin_only
+async def suspend_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not context.args:
+        await update.message.reply_text("Usage: `/suspend <telegram_id>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    try:
+        target = int(context.args[0])
+    except ValueError:
+        await update.message.reply_text("❌ Telegram ID must be an integer.")
+        return
+    ok = await set_suspended(target, True)
+    await update.message.reply_text(
+        f"🚫 User `{target}` suspended. They're now blocked from all bots." if ok else f"❌ User `{target}` not found.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+    if ok:
+        try:
+            await context.bot.send_message(chat_id=target, text="🚫 Your access has been suspended. Please contact support.")
+        except Exception:
+            pass
+
+
+@admin_only
+async def unsuspend_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not context.args:
+        await update.message.reply_text("Usage: `/unsuspend <telegram_id>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    try:
+        target = int(context.args[0])
+    except ValueError:
+        await update.message.reply_text("❌ Telegram ID must be an integer.")
+        return
+    ok = await set_suspended(target, False)
+    await update.message.reply_text(
+        f"✅ User `{target}` un-suspended." if ok else f"❌ User `{target}` not found.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+    if ok:
+        try:
+            await context.bot.send_message(chat_id=target, text="✅ Your access has been restored. Welcome back!")
+        except Exception:
+            pass
+
+
 async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Intercepts messages when the admin is in broadcast, Direct Message, or Video guided upload flows."""
     user = update.effective_user
@@ -1313,17 +1575,14 @@ async def health_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
 @admin_only
 async def setcommands_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Registers the bot command menu with Telegram using setMyCommands API."""
-    from telegram import BotCommand
-    commands = [
-        BotCommand("start", "Start the bot"),
-        BotCommand("help", "How it works"),
-        BotCommand("contact", "Contact support")
-    ]
+    """Re-register the Payment bot's command menus (public + admin-scoped)."""
     try:
-        await context.bot.set_my_commands(commands)
-        await update.message.reply_text("✅ Bot commands registered successfully!")
-        logger.info(f"Admin {update.effective_user.id} updated bot command list.")
+        await apply_command_menus(context.bot, "payment", settings.ADMIN_USER_IDS)
+        await update.message.reply_text(
+            "✅ Command menus refreshed. Type / to see them.\n"
+            "(Admin commands are shown only to admins.)"
+        )
+        logger.info(f"Admin {update.effective_user.id} refreshed command menus.")
     except Exception as e:
         logger.error(f"Failed to set bot commands: {e}")
         await update.message.reply_text(f"❌ Failed to register bot commands: {e}")
@@ -1366,6 +1625,15 @@ def setup_admin_handlers(app: Application) -> None:
     app.add_handler(CommandHandler("linkcontent", link_content_cmd))
     app.add_handler(CommandHandler("unlinkcontent", unlink_content_cmd))
     app.add_handler(CommandHandler("plancontents", plan_contents_cmd))
+
+    # Plan-based user management
+    app.add_handler(CommandHandler("paidusers", paid_users_cmd))
+    app.add_handler(CommandHandler("freeusers", free_users_cmd))
+    app.add_handler(CommandHandler("suspendedusers", suspended_users_cmd))
+    app.add_handler(CommandHandler("userinfo", userinfo_cmd))
+    app.add_handler(CommandHandler("removeaccess", remove_access_cmd))
+    app.add_handler(CommandHandler("suspend", suspend_cmd))
+    app.add_handler(CommandHandler("unsuspend", unsuspend_cmd))
     # /canceladmin to avoid colliding with /cancel from the user-facing /contact conversation
     app.add_handler(CommandHandler("canceladmin", cancel_admin_flow_cmd))
 

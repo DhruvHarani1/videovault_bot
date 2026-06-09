@@ -2446,3 +2446,548 @@ telegram.error.NetworkError: httpx.ReadError:
 2026-06-09 05:33:19,740 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
 2026-06-09 05:33:19,741 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 1146010950 (plan plan_001) in 200s.
 2026-06-09 05:33:25,530 | INFO | bot.bots.demo | Demo /start payload: ''
+2026-06-09 13:08:26,135 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 13:08:27,502 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 13:08:28,246 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 13:08:29,116 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 13:08:29,870 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 13:08:29,870 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 13:08:29,870 | INFO | __main__ | Initializing database...
+2026-06-09 13:08:29,897 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 13:08:29,907 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 13:08:29,929 | INFO | __main__ | Registering active instance ID: 90e01716-11cd-4c59-b13d-807f034758a1
+2026-06-09 13:08:29,931 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '90e01716-11cd-4c59-b13d-807f034758a1' to database.
+2026-06-09 13:08:29,943 | INFO | __main__ | Preloading configuration...
+2026-06-09 13:08:29,945 | INFO | bot.services.config | Preloaded 2 configuration(s) into memory cache.
+2026-06-09 13:08:30,482 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:08:30,482 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:08:30,645 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 13:08:31,356 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:08:31,357 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:08:31,633 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 13:08:32,083 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:08:32,084 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:08:32,234 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 13:08:32,696 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:08:32,696 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:08:32,851 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 13:08:32,851 | INFO | __main__ | Starting scheduler...
+2026-06-09 13:08:32,851 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:08:32,851 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 13:08:32,853 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 13:08:32,853 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 13:08:32,861 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 13:08:32,862 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 13:08:32,862 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 13:08:32,862 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 13:08:32,862 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 13:08:32,862 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 13:09:55,069 | INFO | bot.bots.demo | Demo /start payload: 'plan_001'
+2026-06-09 13:09:55,732 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
+2026-06-09 13:09:55,732 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 6138059719 (plan plan_001) in 200s.
+2026-06-09 13:10:37,087 | INFO | bot.services.tickets | Created payment ticket #5 for user 6138059719, plan plan_002.
+2026-06-09 13:10:42,229 | INFO | bot.services.email | Email sent: '🧾 New payment proof — Ticket #5 (Standard, ₹50)' → 1 recipient(s).
+2026-06-09 13:10:42,613 | INFO | bot.services.tickets | Ticket #5 -> rejected by 6138059719.
+2026-06-09 13:10:46,002 | INFO | bot.services.email | Email sent: '❌ Payment rejected — Ticket #5 (Standard)' → 1 recipient(s).
+2026-06-09 13:11:19,851 | INFO | bot.services.tickets | Created payment ticket #6 for user 6138059719, plan plan_002.
+2026-06-09 13:11:24,636 | INFO | bot.services.email | Email sent: '🧾 New payment proof — Ticket #6 (Standard, ₹50)' → 1 recipient(s).
+2026-06-09 13:11:24,957 | INFO | bot.services.tickets | Ticket #6 -> approved by 1146010950.
+2026-06-09 13:11:24,981 | INFO | bot.services.access | Granted user 6138059719 access to plan plan_002.
+2026-06-09 13:11:28,217 | INFO | bot.services.email | Email sent: '✅ Payment approved — Ticket #6 (Standard)' → 1 recipient(s).
+2026-06-09 13:12:14,378 | INFO | bot.bots.demo | Demo /start payload: 'plan_003'
+2026-06-09 13:12:15,217 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
+2026-06-09 13:12:15,217 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 6138059719 (plan plan_003) in 200s.
+2026-06-09 13:12:46,449 | INFO | bot.services.tickets | Created payment ticket #7 for user 6138059719, plan plan_003.
+2026-06-09 13:12:51,171 | INFO | bot.services.email | Email sent: '🧾 New payment proof — Ticket #7 (Premium, ₹100)' → 1 recipient(s).
+2026-06-09 13:12:51,499 | INFO | bot.services.tickets | Ticket #7 -> approved by 6138059719.
+2026-06-09 13:12:51,510 | INFO | bot.services.access | Granted user 6138059719 access to plan plan_003.
+2026-06-09 13:12:54,899 | INFO | bot.services.email | Email sent: '✅ Payment approved — Ticket #7 (Premium)' → 1 recipient(s).
+2026-06-09 13:13:15,732 | INFO | apscheduler.scheduler | Removed job demo_expire_6138059719_58
+2026-06-09 13:13:15,733 | INFO | apscheduler.executors.default | Running job "delete_demo_message (trigger: date[2026-06-09 13:13:15 IST], next run at: 2026-06-09 13:13:15 IST)" (scheduled at 2026-06-09 13:13:15.731845+05:30)
+2026-06-09 13:13:17,024 | INFO | apscheduler.executors.default | Job "delete_demo_message (trigger: date[2026-06-09 13:13:15 IST], next run at: 2026-06-09 13:13:15 IST)" executed successfully
+2026-06-09 13:13:32,876 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 13:18:32 IST)" (scheduled at 2026-06-09 13:13:32.862143+05:30)
+2026-06-09 13:13:32,877 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 13:18:32 IST)" executed successfully
+2026-06-09 13:15:35,226 | INFO | apscheduler.scheduler | Removed job demo_expire_6138059719_60
+2026-06-09 13:15:35,226 | INFO | apscheduler.executors.default | Running job "delete_demo_message (trigger: date[2026-06-09 13:15:35 IST], next run at: 2026-06-09 13:15:35 IST)" (scheduled at 2026-06-09 13:15:35.216877+05:30)
+2026-06-09 13:15:36,499 | INFO | apscheduler.executors.default | Job "delete_demo_message (trigger: date[2026-06-09 13:15:35 IST], next run at: 2026-06-09 13:15:35 IST)" executed successfully
+2026-06-09 13:18:32,874 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 13:23:32 IST)" (scheduled at 2026-06-09 13:18:32.862143+05:30)
+2026-06-09 13:18:32,875 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 13:23:32 IST)" executed successfully
+2026-06-09 13:41:49,019 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 13:42:25,143 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 13:42:26,432 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 13:42:27,044 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 13:42:27,670 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 13:42:28,285 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 13:42:28,285 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 13:42:28,285 | INFO | __main__ | Initializing database...
+2026-06-09 13:42:28,301 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 13:42:28,310 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 13:42:28,351 | INFO | __main__ | Registering active instance ID: 5083f924-df60-472f-a00e-6d86dd941633
+2026-06-09 13:42:28,353 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '5083f924-df60-472f-a00e-6d86dd941633' to database.
+2026-06-09 13:42:28,362 | INFO | __main__ | Preloading configuration...
+2026-06-09 13:42:28,364 | INFO | bot.services.config | Preloaded 2 configuration(s) into memory cache.
+2026-06-09 13:42:29,052 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:42:29,053 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:42:29,283 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 13:42:29,710 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:42:29,710 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:42:29,852 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 13:42:30,333 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:42:30,334 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:42:30,497 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 13:42:31,053 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:42:31,053 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:42:31,208 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 13:42:31,208 | INFO | __main__ | Starting scheduler...
+2026-06-09 13:42:31,208 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:42:31,208 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 13:42:31,209 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 13:42:31,209 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 13:42:31,212 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 13:42:31,212 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 13:42:31,212 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 13:42:31,212 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 13:42:31,212 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 13:42:31,212 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 13:47:01,367 | INFO | bot.services.access | Revoked plan plan_003 access from user 1146010950.
+2026-06-09 13:47:07,088 | ERROR | bot.error_handler | Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_application.py", line 1315, in process_update
+    await coroutine
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_handlers\basehandler.py", line 159, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\Downloads\videovault_bot\admin\panel.py", line 86, in wrapper
+    return await func_to_decorate(update, context, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\Downloads\videovault_bot\admin\panel.py", line 900, in paid_users_cmd
+    await update.message.reply_text("\n".join(l for l in lines if l), parse_mode=ParseMode.MARKDOWN)
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_message.py", line 2106, in reply_text
+    return await self.get_bot().send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<21 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 3118, in send_message
+    return await super().send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<23 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 1123, in send_message
+    return await self._send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<21 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 630, in _send_message
+    result = await super()._send_message(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<23 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 820, in _send_message
+    result = await self._post(
+             ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 704, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 370, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 733, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 198, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 375, in _request_wrapper
+    raise exception
+telegram.error.BadRequest: Can't parse entities: can't find end of the entity starting at byte offset 101
+2026-06-09 13:47:31,216 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 13:52:31 IST)" (scheduled at 2026-06-09 13:47:31.212543+05:30)
+2026-06-09 13:47:31,216 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 13:52:31 IST)" executed successfully
+2026-06-09 13:47:38,281 | ERROR | bot.error_handler | Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_application.py", line 1315, in process_update
+    await coroutine
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_handlers\basehandler.py", line 159, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\Downloads\videovault_bot\admin\panel.py", line 86, in wrapper
+    return await func_to_decorate(update, context, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\Downloads\videovault_bot\admin\panel.py", line 900, in paid_users_cmd
+    await update.message.reply_text("\n".join(l for l in lines if l), parse_mode=ParseMode.MARKDOWN)
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_message.py", line 2106, in reply_text
+    return await self.get_bot().send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<21 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 3118, in send_message
+    return await super().send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<23 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 1123, in send_message
+    return await self._send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<21 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 630, in _send_message
+    result = await super()._send_message(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<23 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 820, in _send_message
+    result = await self._post(
+             ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 704, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 370, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 733, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 198, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 375, in _request_wrapper
+    raise exception
+telegram.error.BadRequest: Can't parse entities: can't find end of the entity starting at byte offset 101
+2026-06-09 13:47:43,984 | ERROR | bot.error_handler | Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_application.py", line 1315, in process_update
+    await coroutine
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_handlers\basehandler.py", line 159, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\Downloads\videovault_bot\admin\panel.py", line 86, in wrapper
+    return await func_to_decorate(update, context, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\Downloads\videovault_bot\admin\panel.py", line 900, in paid_users_cmd
+    await update.message.reply_text("\n".join(l for l in lines if l), parse_mode=ParseMode.MARKDOWN)
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_message.py", line 2106, in reply_text
+    return await self.get_bot().send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<21 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 3118, in send_message
+    return await super().send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<23 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 1123, in send_message
+    return await self._send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<21 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 630, in _send_message
+    result = await super()._send_message(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<23 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 820, in _send_message
+    result = await self._post(
+             ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 704, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 370, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 733, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 198, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 375, in _request_wrapper
+    raise exception
+telegram.error.BadRequest: Can't parse entities: can't find end of the entity starting at byte offset 101
+2026-06-09 13:47:47,621 | ERROR | bot.error_handler | Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_application.py", line 1315, in process_update
+    await coroutine
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_handlers\basehandler.py", line 159, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\Downloads\videovault_bot\admin\panel.py", line 86, in wrapper
+    return await func_to_decorate(update, context, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\Downloads\videovault_bot\admin\panel.py", line 900, in paid_users_cmd
+    await update.message.reply_text("\n".join(l for l in lines if l), parse_mode=ParseMode.MARKDOWN)
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_message.py", line 2106, in reply_text
+    return await self.get_bot().send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<21 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 3118, in send_message
+    return await super().send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<23 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 1123, in send_message
+    return await self._send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<21 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 630, in _send_message
+    result = await super()._send_message(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<23 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 820, in _send_message
+    result = await self._post(
+             ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 704, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 370, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 733, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 198, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 375, in _request_wrapper
+    raise exception
+telegram.error.BadRequest: Can't parse entities: can't find end of the entity starting at byte offset 101
+2026-06-09 13:47:56,470 | ERROR | bot.error_handler | Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_application.py", line 1315, in process_update
+    await coroutine
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_handlers\basehandler.py", line 159, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\Downloads\videovault_bot\admin\panel.py", line 86, in wrapper
+    return await func_to_decorate(update, context, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\CARPEDIEM\Downloads\videovault_bot\admin\panel.py", line 900, in paid_users_cmd
+    await update.message.reply_text("\n".join(l for l in lines if l), parse_mode=ParseMode.MARKDOWN)
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_message.py", line 2106, in reply_text
+    return await self.get_bot().send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<21 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 3118, in send_message
+    return await super().send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<23 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 1123, in send_message
+    return await self._send_message(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<21 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 630, in _send_message
+    result = await super()._send_message(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<23 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 820, in _send_message
+    result = await self._post(
+             ^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 704, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\ext\_extbot.py", line 370, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\_bot.py", line 733, in _do_post
+    result = await request.post(
+             ^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 198, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\CARPEDIEM\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\telegram\request\_baserequest.py", line 375, in _request_wrapper
+    raise exception
+telegram.error.BadRequest: Can't parse entities: can't find end of the entity starting at byte offset 101
+2026-06-09 13:49:42,106 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 13:49:48,707 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 13:49:50,003 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 13:49:50,616 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 13:49:51,234 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 13:49:51,853 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 13:49:51,853 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 13:49:51,853 | INFO | __main__ | Initializing database...
+2026-06-09 13:49:51,877 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 13:49:51,887 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 13:49:51,903 | INFO | __main__ | Registering active instance ID: 0035b8fe-a21c-4feb-b1bd-b66007f8bff9
+2026-06-09 13:49:51,905 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '0035b8fe-a21c-4feb-b1bd-b66007f8bff9' to database.
+2026-06-09 13:49:51,915 | INFO | __main__ | Preloading configuration...
+2026-06-09 13:49:51,917 | INFO | bot.services.config | Preloaded 2 configuration(s) into memory cache.
+2026-06-09 13:49:52,385 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:49:52,386 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:49:52,531 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 13:49:53,128 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:49:53,129 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:49:53,363 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 13:49:53,807 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:49:53,808 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:49:53,954 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 13:49:54,649 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:49:54,649 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:49:54,888 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 13:49:54,888 | INFO | __main__ | Starting scheduler...
+2026-06-09 13:49:54,888 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:49:54,888 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 13:49:54,889 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 13:49:54,890 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 13:49:54,893 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 13:49:54,893 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 13:49:54,894 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 13:49:54,894 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 13:49:54,894 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 13:49:54,894 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).
+2026-06-09 13:51:15,701 | INFO | bot.bots.demo | Demo /start payload: 'plan_002'
+2026-06-09 13:51:29,307 | INFO | bot.bots.demo | Demo /start payload: 'plan_001'
+2026-06-09 13:51:30,387 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
+2026-06-09 13:51:30,388 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 1146010950 (plan plan_001) in 200s.
+2026-06-09 13:51:37,197 | INFO | bot.bots.demo | Demo /start payload: 'plan_001'
+2026-06-09 13:51:38,750 | INFO | apscheduler.scheduler | Added job "delete_demo_message" to job store "default"
+2026-06-09 13:51:38,751 | INFO | bot.services.scheduler | Scheduled demo expiry for chat 1146010950 (plan plan_001) in 200s.
+2026-06-09 13:51:53,820 | INFO | bot.services.tickets | Created payment ticket #8 for user 1146010950, plan plan_001.
+2026-06-09 13:51:59,565 | INFO | bot.services.email | Email sent: '🧾 New payment proof — Ticket #8 (Starter, ₹20)' → 1 recipient(s).
+2026-06-09 13:51:59,941 | INFO | bot.services.tickets | Ticket #8 -> approved by 1146010950.
+2026-06-09 13:51:59,957 | INFO | bot.services.access | Granted user 1146010950 access to plan plan_001.
+2026-06-09 13:52:03,830 | INFO | bot.services.email | Email sent: '✅ Payment approved — Ticket #8 (Starter)' → 1 recipient(s).
+2026-06-09 13:54:50,392 | INFO | apscheduler.scheduler | Removed job demo_expire_1146010950_66
+2026-06-09 13:54:50,393 | INFO | apscheduler.executors.default | Running job "delete_demo_message (trigger: date[2026-06-09 13:54:50 IST], next run at: 2026-06-09 13:54:50 IST)" (scheduled at 2026-06-09 13:54:50.387371+05:30)
+2026-06-09 13:54:51,461 | INFO | apscheduler.executors.default | Job "delete_demo_message (trigger: date[2026-06-09 13:54:50 IST], next run at: 2026-06-09 13:54:50 IST)" executed successfully
+2026-06-09 13:54:54,898 | INFO | apscheduler.executors.default | Running job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 13:59:54 IST)" (scheduled at 2026-06-09 13:54:54.894025+05:30)
+2026-06-09 13:54:54,899 | INFO | apscheduler.executors.default | Job "check_inactivity_alert (trigger: interval[0:05:00], next run at: 2026-06-09 13:59:54 IST)" executed successfully
+2026-06-09 13:54:58,754 | INFO | apscheduler.scheduler | Removed job demo_expire_1146010950_69
+2026-06-09 13:54:58,755 | INFO | apscheduler.executors.default | Running job "delete_demo_message (trigger: date[2026-06-09 13:54:58 IST], next run at: 2026-06-09 13:54:58 IST)" (scheduled at 2026-06-09 13:54:58.750656+05:30)
+2026-06-09 13:54:59,811 | INFO | apscheduler.executors.default | Job "delete_demo_message (trigger: date[2026-06-09 13:54:58 IST], next run at: 2026-06-09 13:54:58 IST)" executed successfully
+2026-06-09 13:56:39,362 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 13:56:58,319 | INFO | bot.handlers.payment | Razorpay client initialized successfully.
+2026-06-09 13:56:59,586 | INFO | bot.bots | Built 'sales' bot application.
+2026-06-09 13:57:00,187 | INFO | bot.bots | Built 'demo' bot application.
+2026-06-09 13:57:00,792 | INFO | bot.bots | Built 'payment' bot application.
+2026-06-09 13:57:01,397 | INFO | bot.bots | Built 'file' bot application.
+2026-06-09 13:57:01,397 | INFO | __main__ | Starting VideoVault in POLLING mode with bots: ['sales', 'demo', 'payment', 'file']
+2026-06-09 13:57:01,397 | INFO | __main__ | Initializing database...
+2026-06-09 13:57:01,412 | INFO | __main__ | Seeding legacy video row (if needed)...
+2026-06-09 13:57:01,420 | INFO | __main__ | Running Phase 0 plan backfill (if needed)...
+2026-06-09 13:57:01,434 | INFO | __main__ | Registering active instance ID: 62cba52d-51cc-4815-a820-c360e2a6590a
+2026-06-09 13:57:01,436 | INFO | bot.services.config | Saved config key 'ACTIVE_INSTANCE_ID' = '62cba52d-51cc-4815-a820-c360e2a6590a' to database.
+2026-06-09 13:57:01,445 | INFO | __main__ | Preloading configuration...
+2026-06-09 13:57:01,446 | INFO | bot.services.config | Preloaded 2 configuration(s) into memory cache.
+2026-06-09 13:57:02,314 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:57:02,314 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:57:03,005 | INFO | __main__ | Bot 'sales' polling for updates...
+2026-06-09 13:57:03,577 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:57:03,578 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:57:04,175 | INFO | __main__ | Bot 'demo' polling for updates...
+2026-06-09 13:57:05,001 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:57:05,001 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:57:06,676 | INFO | __main__ | Bot 'payment' polling for updates...
+2026-06-09 13:57:07,834 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:57:07,835 | INFO | telegram.ext.Application | Application started
+2026-06-09 13:57:08,320 | INFO | __main__ | Bot 'file' polling for updates...
+2026-06-09 13:57:08,320 | INFO | __main__ | Starting scheduler...
+2026-06-09 13:57:08,320 | INFO | apscheduler.scheduler | Scheduler started
+2026-06-09 13:57:08,320 | INFO | bot.services.scheduler | Scheduler started successfully.
+2026-06-09 13:57:08,321 | INFO | apscheduler.scheduler | Added job "send_daily_reminders" to job store "default"
+2026-06-09 13:57:08,322 | INFO | bot.services.scheduler | Scheduled daily reminders job (every 24 hours).
+2026-06-09 13:57:08,356 | INFO | apscheduler.scheduler | Added job "send_daily_report" to job store "default"
+2026-06-09 13:57:08,356 | INFO | bot.services.scheduler | Scheduled daily report job at 9:00 AM IST.
+2026-06-09 13:57:08,357 | INFO | apscheduler.scheduler | Added job "check_inactivity_alert" to job store "default"
+2026-06-09 13:57:08,357 | INFO | bot.services.scheduler | Scheduled bot inactivity check (every 5 minutes).
+2026-06-09 13:57:08,357 | INFO | apscheduler.scheduler | Added job "check_db_size_alert" to job store "default"
+2026-06-09 13:57:08,357 | INFO | bot.services.scheduler | Scheduled DB size warning check (every 1 hour).

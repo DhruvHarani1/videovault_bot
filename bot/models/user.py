@@ -39,6 +39,8 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     reminders_sent: Mapped[int] = mapped_column(Integer, default=0)
     reminders_opt_out: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Admin-controlled suspension — blocks the user from all bots.
+    suspended: Mapped[bool] = mapped_column(Boolean, default=False)
 
     def __repr__(self):
         return f"<User telegram_id={self.telegram_id} username={self.username} has_full_access={self.has_full_access}>"
@@ -305,6 +307,8 @@ async def init_db():
         # Phase 4 storage-channel refs (additive, nullable).
         await _migrate_add_column(conn, "content_items", "storage_msg_id", "INTEGER")
         await _migrate_add_column(conn, "plans", "preview_msg_id", "INTEGER")
+        # Admin suspension flag (default 0 = not suspended).
+        await _migrate_add_column(conn, "users", "suspended", "BOOLEAN NOT NULL DEFAULT 0")
 
 
 async def seed_legacy_video_if_needed() -> None:
