@@ -41,6 +41,19 @@ def _normalize_plan_id(payload: str) -> str:
     return pid
 
 
+async def _safe_answer(query, text=None, show_alert=False) -> None:
+    """Acknowledge a callback query, tolerating stale queries.
+
+    On Render's free tier a cold start can delay processing past Telegram's ~15s
+    callback validity window, making query.answer() raise 'Query is too old'. That
+    must never abort the actual work (approve/reject still proceed via send_message),
+    so we swallow the error here."""
+    try:
+        await query.answer(text=text, show_alert=show_alert)
+    except Exception as e:
+        logger.info(f"callback answer skipped (stale/invalid query): {e}")
+
+
 async def _download_proof(bot, file_id: str):
     """Download the proof screenshot bytes for emailing. Returns bytes or None."""
     try:
@@ -127,12 +140,12 @@ async def on_workflow_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     action, _, param = data.partition(":")
 
     if action == "payplan":
-        await query.answer()
+        await _safe_answer(query)
         await show_payment_screen(update, context, param)
         return
 
     if action == "payproof":
-        await query.answer()
+        await _safe_answer(query)
         context.user_data["awaiting_proof_plan"] = param
         await query.message.reply_text(
             "📸 Please send a *screenshot* of your completed payment now (as a photo).",
@@ -206,26 +219,26 @@ async def _handle_review(update: Update, context: ContextTypes.DEFAULT_TYPE, act
     query = update.callback_query
     admin = query.from_user
     if not admin or admin.id not in settings.ADMIN_USER_IDS:
-        await query.answer("Not authorized.", show_alert=True)
+        await _safe_answer(query, "Not authorized.", show_alert=True)
         return
 
     try:
         ticket_id = int(param)
     except ValueError:
-        await query.answer("Bad ticket id.", show_alert=True)
+        await _safe_answer(query, "Bad ticket id.", show_alert=True)
         return
 
     ticket = await get_ticket(ticket_id)
     if not ticket:
-        await query.answer("Ticket not found.", show_alert=True)
+        await _safe_answer(query, "Ticket not found.", show_alert=True)
         return
     if ticket.status != "pending":
-        await query.answer(f"Already {ticket.status}.", show_alert=True)
+        await _safe_answer(query, f"Already {ticket.status}.", show_alert=True)
         return
 
     plan = await get_plan(ticket.plan_id)
     plan_name = plan.name if plan else ticket.plan_id
-    await query.answer()
+    await _safe_answer(query)
 
     if action == "approve":
         await set_ticket_status(ticket_id, "approved", reviewed_by=admin.id)

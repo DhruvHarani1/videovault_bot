@@ -19,6 +19,14 @@ logger = logging.getLogger(__name__)
 VALID_BOT_KEYS = {"sales", "demo", "payment", "file"}
 
 
+async def safe_answer(query, text=None, show_alert=False) -> None:
+    """Acknowledge a callback query, tolerating stale/expired queries (cold starts)."""
+    try:
+        await query.answer(text=text, show_alert=show_alert)
+    except Exception as e:
+        logger.info(f"callback answer skipped (stale/invalid query): {e}")
+
+
 async def is_user_blocked(update, context) -> bool:
     """If the user is suspended, send a notice and return True (caller should bail)."""
     user = getattr(update, "effective_user", None)

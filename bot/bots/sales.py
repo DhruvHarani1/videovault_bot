@@ -10,7 +10,7 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-from bot.services.sessions import register_user_and_bot, build_deep_link, is_user_blocked
+from bot.services.sessions import register_user_and_bot, build_deep_link, is_user_blocked, safe_answer
 from bot.services.plans import list_active_plans, get_plan
 from bot.services.monitoring import update_last_message_time
 
@@ -93,7 +93,7 @@ async def _show_plan_detail(update: Update, plan_id: str) -> None:
 async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     update_last_message_time()
     query = update.callback_query
-    await query.answer()
+    await safe_answer(query)
     data = query.data or ""
 
     if data == "catalog":
