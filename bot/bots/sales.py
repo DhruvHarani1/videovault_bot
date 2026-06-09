@@ -10,7 +10,7 @@ import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-from bot.services.sessions import register_user_and_bot, build_deep_link
+from bot.services.sessions import register_user_and_bot, build_deep_link, is_user_blocked
 from bot.services.plans import list_active_plans, get_plan
 from bot.services.monitoring import update_last_message_time
 
@@ -57,6 +57,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     update_last_message_time()
     if update.effective_user:
         await register_user_and_bot(update.effective_user, BOT_KEY)
+    if await is_user_blocked(update, context):
+        return
     await _render_catalog(update, edit=False)
 
 

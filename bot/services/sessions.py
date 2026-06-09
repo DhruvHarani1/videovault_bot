@@ -12,10 +12,28 @@ from sqlalchemy.future import select
 
 from bot.config import settings
 from bot.models import get_db, User, UserBotState
+from bot.services.users import is_suspended
 
 logger = logging.getLogger(__name__)
 
 VALID_BOT_KEYS = {"sales", "demo", "payment", "file"}
+
+
+async def is_user_blocked(update, context) -> bool:
+    """If the user is suspended, send a notice and return True (caller should bail)."""
+    user = getattr(update, "effective_user", None)
+    if not user:
+        return False
+    try:
+        if await is_suspended(user.id):
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="🚫 Your access has been suspended. Please contact support.",
+            )
+            return True
+    except Exception as e:
+        logger.error(f"Suspension check failed for {user.id}: {e}")
+    return False
 
 
 def build_deep_link(bot_key: str, payload: str = "") -> str:

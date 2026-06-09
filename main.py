@@ -54,6 +54,15 @@ def _representative_bot():
     return None
 
 
+async def _register_command_menus(bot_key, application) -> None:
+    """Register the "/" autocomplete menus for a bot (public + admin-scoped)."""
+    try:
+        from admin.panel import apply_command_menus
+        await apply_command_menus(application.bot, bot_key, settings.ADMIN_USER_IDS)
+    except Exception as e:
+        logger.error(f"Failed to register command menus for '{bot_key}': {e}")
+
+
 async def init_shared_state() -> None:
     """One-time process-wide initialization (DB, seed, backfill, config cache).
     Must run exactly once regardless of how many bot Applications exist."""
@@ -81,10 +90,11 @@ async def lifespan(app: FastAPI):
 
     await init_shared_state()
 
-    # Start each bot Application.
+    # Start each bot Application + register its "/" command menus.
     for key, application in apps.items():
         await application.initialize()
         await application.start()
+        await _register_command_menus(key, application)
 
     # Scheduler uses a single representative bot.
     rep = _representative_bot()
@@ -229,6 +239,7 @@ async def main_async() -> None:
             for key, application in applications.items():
                 await application.initialize()
                 await application.start()
+                await _register_command_menus(key, application)
                 await application.updater.start_polling(drop_pending_updates=True)
                 logger.info(f"Bot '{key}' polling for updates...")
 

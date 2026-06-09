@@ -20,7 +20,7 @@ from telegram.ext import (
 )
 
 from bot.config import settings
-from bot.services.sessions import register_user_and_bot, build_deep_link
+from bot.services.sessions import register_user_and_bot, build_deep_link, is_user_blocked
 from bot.services.plans import list_active_plans, get_plan
 from bot.services.config import get_payment_qr
 from bot.services.access import has_plan_access, grant_plan_access
@@ -110,6 +110,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     update_last_message_time()
     if update.effective_user:
         await register_user_and_bot(update.effective_user, BOT_KEY)
+    if await is_user_blocked(update, context):
+        return
     plan_id = _normalize_plan_id(context.args[0] if context.args else "")
     if plan_id:
         await show_payment_screen(update, context, plan_id)
@@ -149,6 +151,10 @@ async def on_proof_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     plan_id = context.user_data.get("awaiting_proof_plan")
     if not plan_id:
         return  # not in a proof flow — ignore (admin uploads etc. handled elsewhere)
+
+    if await is_user_blocked(update, context):
+        context.user_data.pop("awaiting_proof_plan", None)
+        return
 
     update_last_message_time()
     user = update.effective_user

@@ -10,6 +10,15 @@ from bot.services.access import (
 from bot.services.scheduler import start_scheduler, schedule_video_deletion, schedule_demo_expiry
 from bot.services.config import preload_config, get_config, set_config, get_preview_video_id, get_full_video_id, get_video_price, get_payment_qr
 from bot.services.tickets import create_ticket, get_ticket, set_ticket_status, list_pending_tickets
+from bot.services.users import (
+    list_paid_users,
+    list_free_users,
+    list_suspended_users,
+    set_suspended,
+    is_suspended,
+    find_user,
+    user_overview,
+)
 from bot.services.videos import (
     list_active_videos,
     list_all_videos,
