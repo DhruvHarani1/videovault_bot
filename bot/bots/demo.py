@@ -17,7 +17,8 @@ from bot.config import settings
 from bot.services.sessions import register_user_and_bot, build_deep_link, is_user_blocked, safe_answer
 from bot.services.plans import list_active_plans, get_plan
 from bot.services.content import list_content_for_plan
-from bot.services.delivery import deliver_plan_preview, deliver_content_item
+from bot.services.demos import list_plan_demos
+from bot.services.delivery import deliver_plan_preview, deliver_content_item, copy_from_storage, send_by_file_id
 from bot.services.scheduler import schedule_demo_expiry
 from bot.services.monitoring import update_last_message_time
 
@@ -41,18 +42,36 @@ async def _send_demo(update: Update, context: ContextTypes.DEFAULT_TYPE, plan_id
         f"Buy the full plan (₹{plan.price_inr}) to keep watching."
     )
 
-    # 1. Prefer the plan's dedicated preview clip (via storage channel, portable).
-    sent_message_id = await deliver_plan_preview(context.bot, chat_id, plan, caption=caption, protect=True)
+    sent_ids = []
 
-    # 2. Fallback: first deliverable linked content item as a teaser.
-    if sent_message_id is None:
+    # 1. Preferred: all demo items attached via /adddemo (multiple videos/photos).
+    demos = await list_plan_demos(plan_id)
+    for i, d in enumerate(demos):
+        cap = caption if i == 0 else None  # only the first carries the pitch caption
+        mid = await copy_from_storage(context.bot, chat_id, d.storage_msg_id, caption=cap, protect=True)
+        if mid is None and d.file_id:
+            mid = await send_by_file_id(context.bot, chat_id, d.file_id, media_type=d.media_type, caption=cap, protect=True)
+        if mid is not None:
+            sent_ids.append(mid)
+
+    # 2. Legacy fallback: the single plan preview clip.
+    if not sent_ids:
+        mid = await deliver_plan_preview(context.bot, chat_id, plan, caption=caption, protect=True)
+        if mid is not None:
+            sent_ids.append(mid)
+
+    # 3. Fallback: first deliverable linked content item as a teaser.
+    if not sent_ids:
         items = await list_content_for_plan(plan_id, active_only=True)
         for item in items:
-            sent_message_id = await deliver_content_item(context.bot, chat_id, item, caption=caption, protect=True)
-            if sent_message_id is not None:
+            mid = await deliver_content_item(context.bot, chat_id, item, caption=caption, protect=True)
+            if mid is not None:
+                sent_ids.append(mid)
                 break
 
-    # 3. Nothing to show.
+    sent_message_id = sent_ids[0] if sent_ids else None
+
+    # 4. Nothing to show.
     if sent_message_id is None:
         pay_link = build_deep_link("payment", plan_id)
         buttons = [[InlineKeyboardButton(f"💳 Buy {plan.name} — ₹{plan.price_inr}", url=pay_link)]] if pay_link else None
@@ -82,8 +101,8 @@ async def _send_demo(update: Update, context: ContextTypes.DEFAULT_TYPE, plan_id
             parse_mode="Markdown",
         )
 
-    # Schedule self-destruction of the preview clip + a follow-up notice.
-    schedule_demo_expiry(context.bot, chat_id, sent_message_id, plan_id=plan_id, delay_seconds=expiry)
+    # Schedule self-destruction of ALL demo messages + a single follow-up notice.
+    schedule_demo_expiry(context.bot, chat_id, sent_ids, plan_id=plan_id, delay_seconds=expiry)
 
 
 async def _show_picker(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

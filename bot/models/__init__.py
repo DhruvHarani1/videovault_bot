@@ -11,6 +11,7 @@ from bot.models.user import (
     Plan,
     ContentItem,
     PlanContent,
+    PlanDemo,
     PaymentTicket,
     PlanAccess,
     Delivery,
