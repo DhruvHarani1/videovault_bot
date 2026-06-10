@@ -50,6 +50,7 @@ from bot.services.content import (
     list_content_for_plan,
 )
 from bot.services.delivery import store_media_in_channel
+from bot.services.demos import add_plan_demo, list_plan_demos, count_plan_demos, clear_plan_demos
 from bot.services.users import (
     list_paid_users,
     list_free_users,
@@ -59,6 +60,9 @@ from bot.services.users import (
     user_overview,
 )
 from bot.services.access import revoke_plan_access, list_user_plans
+from bot.services.backup import (
+    schedule_backup_soon, upload_and_pin, send_to_admin, restore_now, backup_status, is_backup_enabled,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +109,9 @@ ADMIN_COMMAND_MENU = [
     ("addplan", "Add a plan"),
     ("setplanprice", "Set a plan's price"),
     ("setplanpreview", "Set a plan's demo video"),
+    ("adddemo", "Add multiple demos to a plan"),
+    ("listdemos", "List a plan's demos"),
+    ("cleardemos", "Clear a plan's demos"),
     ("removeplan", "Hide a plan"),
     ("restoreplan", "Restore a plan"),
     # Content
@@ -115,10 +122,16 @@ ADMIN_COMMAND_MENU = [
     ("plancontents", "Show a plan's content"),
     # Payments & config
     ("setqr", "Set the payment QR image"),
+    ("setbanner", "Set the Sales promo banner"),
     ("broadcast", "Broadcast a message"),
     ("health", "System health"),
     ("canceladmin", "Cancel the current flow"),
     ("setcommands", "Refresh the / menu"),
+    # Backups
+    ("backup", "Back up the database now"),
+    ("getbackup", "Download a DB snapshot"),
+    ("backupstatus", "Backup status"),
+    ("restore", "Restore from latest snapshot"),
 ]
 
 
@@ -170,7 +183,9 @@ ADMIN_PANEL_TEXT = (
     "/listplans — list plans\n"
     "/addplan — add a plan\n"
     "/setplanprice — change price\n"
-    "/setplanpreview — set demo video\n"
+    "/setplanpreview — set a single demo\n"
+    "/adddemo — add multiple demos (video/photo)\n"
+    "/listdemos · /cleardemos — manage demos\n"
     "/removeplan · /restoreplan — hide / restore\n\n"
     "🎞 *Content*\n"
     "/listcontent — list content\n"
@@ -179,10 +194,16 @@ ADMIN_PANEL_TEXT = (
     "/plancontents — a plan's content\n\n"
     "💳 *Payments & Config*\n"
     "/setqr — set payment QR\n"
+    "/setbanner — set Sales promo banner\n"
     "/broadcast — message users\n"
     "/stats · /health — metrics\n"
     "/canceladmin — cancel a flow\n"
-    "/setcommands — refresh the / menu"
+    "/setcommands — refresh the / menu\n\n"
+    "🗄 *Backups*\n"
+    "/backup — back up the DB now\n"
+    "/getbackup — download a snapshot\n"
+    "/backupstatus — last backup & health\n"
+    "/restore — restore latest snapshot"
 )
 
 
@@ -829,6 +850,17 @@ async def restore_plan_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 @admin_only
+async def set_banner_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Set the Sales bot promo banner image. Send a photo after this command."""
+    context.user_data["admin_state"] = "setbanner_waiting_image"
+    await update.message.reply_text(
+        "🖼 Send the **promo banner image** now (as a photo).\n"
+        "It'll appear at the top of the Sales catalog. /canceladmin to abort.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
 async def set_qr_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Set the payment QR/UPI image shown by the Payment bot. Send a photo after."""
     context.user_data["admin_state"] = "setqr_waiting_image"
@@ -854,9 +886,71 @@ async def set_plan_preview_cmd(update: Update, context: ContextTypes.DEFAULT_TYP
     context.user_data["setplanpreview_plan_id"] = args[0]
     await update.message.reply_text(
         f"🎬 Send the **demo/preview video** for plan `{args[0]}` ({plan.name}).\n"
-        "It will be shown (and auto-deleted) by the Demo bot. /canceladmin to abort.",
+        "It will be shown (and auto-deleted) by the Demo bot. /canceladmin to abort.\n"
+        "_Tip: use /adddemo to attach MULTIPLE demo videos/photos._",
         parse_mode=ParseMode.MARKDOWN,
     )
+
+
+@admin_only
+async def add_demo_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Bulk-add demo media (videos AND/OR photos) to a plan. Usage: /adddemo <plan_id>."""
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/adddemo <plan_id>` then send videos/photos.", parse_mode=ParseMode.MARKDOWN)
+        return
+    plan = await get_plan(args[0])
+    if not plan:
+        await update.message.reply_text(f"❌ Plan `{args[0]}` not found.", parse_mode=ParseMode.MARKDOWN)
+        return
+    context.user_data["admin_state"] = "adddemo_bulk"
+    context.user_data["adddemo_plan_id"] = args[0]
+    context.user_data["adddemo_count"] = 0
+    await update.message.reply_text(
+        f"🎬 *Add demos to `{args[0]}` ({_md(plan.name)})*\n\n"
+        "Send videos and/or photos one after another — each becomes a demo item shown by the Demo bot.\n"
+        "Send /donedemo when finished, or /canceladmin to abort.",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
+async def done_demo_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    n = context.user_data.pop("adddemo_count", 0)
+    plan_id = context.user_data.pop("adddemo_plan_id", None)
+    context.user_data.pop("admin_state", None)
+    await update.message.reply_text(f"✅ Done. Added {n} demo item(s) to `{plan_id}`.", parse_mode=ParseMode.MARKDOWN)
+    if n:
+        schedule_backup_soon(context.bot)
+
+
+@admin_only
+async def list_demos_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/listdemos <plan_id>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    demos = await list_plan_demos(args[0])
+    if not demos:
+        await update.message.reply_text(f"Plan `{args[0]}` has no demo items. Add some with `/adddemo {args[0]}`.", parse_mode=ParseMode.MARKDOWN)
+        return
+    lines = [f"🎬 *Demos for `{args[0]}`* — {len(demos)} item(s)\n"]
+    for d in demos:
+        lines.append(f"{d.position + 1}. {d.media_type} (id {d.id})")
+    lines.append(f"\nClear all with `/cleardemos {args[0]}`.")
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
+
+
+@admin_only
+async def clear_demos_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args
+    if not args:
+        await update.message.reply_text("Usage: `/cleardemos <plan_id>`", parse_mode=ParseMode.MARKDOWN)
+        return
+    n = await clear_plan_demos(args[0])
+    await update.message.reply_text(f"✅ Removed {n} demo item(s) from `{args[0]}`.", parse_mode=ParseMode.MARKDOWN)
+    if n:
+        schedule_backup_soon(context.bot)
 
 
 @admin_only
@@ -879,6 +973,8 @@ async def done_content_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     n = context.user_data.pop("addcontent_count", 0)
     context.user_data.pop("admin_state", None)
     await update.message.reply_text(f"✅ Done. Added {n} content item(s). Use /linkcontent to attach them to plans.")
+    if n:
+        schedule_backup_soon(context.bot)
 
 
 @admin_only
@@ -931,6 +1027,7 @@ async def link_content_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     await update.message.reply_text(
         f"Linking to `{plan_id}`:\n" + "\n".join(results), parse_mode=ParseMode.MARKDOWN
     )
+    schedule_backup_soon(context.bot)
 
 
 @admin_only
@@ -1075,6 +1172,7 @@ async def remove_access_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     else:
         await revoke_plan_access(target, which)
         await update.message.reply_text(f"✅ Revoked `{which}` from `{target}`.", parse_mode=ParseMode.MARKDOWN)
+    schedule_backup_soon(context.bot)
     # Notify the user.
     try:
         await context.bot.send_message(chat_id=target, text="ℹ️ Your access to a plan has been removed. Contact support if this is unexpected.")
@@ -1098,6 +1196,7 @@ async def suspend_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         parse_mode=ParseMode.MARKDOWN,
     )
     if ok:
+        schedule_backup_soon(context.bot)
         try:
             await context.bot.send_message(chat_id=target, text="🚫 Your access has been suspended. Please contact support.")
         except Exception:
@@ -1120,6 +1219,7 @@ async def unsuspend_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         parse_mode=ParseMode.MARKDOWN,
     )
     if ok:
+        schedule_backup_soon(context.bot)
         try:
             await context.bot.send_message(chat_id=target, text="✅ Your access has been restored. Welcome back!")
         except Exception:
@@ -1337,12 +1437,37 @@ async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_T
                 f"Now link content with `/linkcontent {plan.id} <content_id...>`.",
                 parse_mode=ParseMode.MARKDOWN,
             )
+            schedule_backup_soon(context.bot)
         except Exception as e:
             logger.error(f"Failed to create plan: {e}", exc_info=True)
             await update.message.reply_text(f"❌ Failed to create plan: {e}")
         finally:
             context.user_data.pop("admin_state", None)
             context.user_data.pop("new_plan", None)
+
+    # ────────── Sales promo banner capture ──────────
+    elif admin_state == "setbanner_waiting_image":
+        file_id = None
+        if msg.photo:
+            file_id = msg.photo[-1].file_id
+        elif msg.document and (msg.document.mime_type or "").startswith("image/"):
+            file_id = msg.document.file_id
+        if not file_id:
+            await update.message.reply_text("❌ Please send an image (photo) for the banner.")
+            return
+        # Copy into the storage channel so the Sales bot (different token) can show it.
+        storage_msg_id = await store_media_in_channel(
+            context.bot, from_chat_id=update.effective_chat.id, message_id=msg.message_id
+        )
+        context.user_data.pop("admin_state", None)
+        if storage_msg_id:
+            await set_config("SALES_BANNER_MSG_ID", str(storage_msg_id))
+            await update.message.reply_text("✅ Sales banner saved. It'll show at the top of the catalog.")
+            schedule_backup_soon(context.bot)
+        else:
+            await update.message.reply_text(
+                "⚠️ Couldn't copy the banner to the storage channel — make sure this bot is an admin there, then retry."
+            )
 
     # ────────── Phase 5: /setqr capture ──────────
     elif admin_state == "setqr_waiting_image":
@@ -1357,6 +1482,33 @@ async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_T
         await set_config("PAYMENT_QR_FILE_ID", file_id)
         context.user_data.pop("admin_state", None)
         await update.message.reply_text("✅ Payment QR image saved. Users will now see it on the payment screen.")
+        schedule_backup_soon(context.bot)
+
+    # ────────── Multi-demo bulk capture (/adddemo) ──────────
+    elif admin_state == "adddemo_bulk":
+        file_id = None
+        media_type = "video"
+        if msg.video:
+            file_id, media_type = msg.video.file_id, "video"
+        elif msg.photo:
+            file_id, media_type = msg.photo[-1].file_id, "photo"
+        elif msg.document:
+            file_id, media_type = msg.document.file_id, "document"
+        if not file_id:
+            await update.message.reply_text("❌ Send a video or photo — or /donedemo to finish.")
+            return
+        plan_id = context.user_data.get("adddemo_plan_id")
+        storage_msg_id = await store_media_in_channel(
+            context.bot, from_chat_id=update.effective_chat.id, message_id=msg.message_id
+        )
+        try:
+            await add_plan_demo(plan_id, storage_msg_id=storage_msg_id, file_id=file_id, media_type=media_type)
+            context.user_data["adddemo_count"] = context.user_data.get("adddemo_count", 0) + 1
+            warn = "" if storage_msg_id else " ⚠️ (not copied to storage — check bot is channel admin)"
+            await update.message.reply_text(f"✅ Demo {media_type} added{warn}. Send more, or /donedemo.")
+        except Exception as e:
+            logger.error(f"Failed to add demo: {e}", exc_info=True)
+            await update.message.reply_text(f"❌ Failed to add demo: {e}")
 
     # ────────── Phase 4: /setplanpreview capture ──────────
     elif admin_state == "setplanpreview_waiting_video":
@@ -1379,6 +1531,8 @@ async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_T
                        f"library channel — the Demo bot won't be able to show it. "
                        f"Make sure this bot is an admin of the storage channel, then retry.")
             await update.message.reply_text(txt, parse_mode=ParseMode.MARKDOWN)
+            if ok:
+                schedule_backup_soon(context.bot)
         else:
             await update.message.reply_text("❌ Please send a video file for the demo preview.")
 
@@ -1434,6 +1588,93 @@ async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_T
             await update.message.reply_text("❌ Directly sent messages must contain text only.")
         
         context.user_data.pop("admin_state", None)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Database backup / restore (free persistence across Render redeploys)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@admin_only
+async def backup_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Create a snapshot and upload+pin it in the backup channel."""
+    if not is_backup_enabled():
+        await update.message.reply_text("❌ Backups are disabled (need SQLite + BACKUP_CHANNEL_ID).")
+        return
+    await update.message.reply_text("🗄 Creating backup…")
+    res = await upload_and_pin(context.bot)
+    if res.get("ok"):
+        c = res["counts"]
+        pin = "📌 pinned" if res.get("pinned") else "⚠️ NOT pinned (check Pin permission)"
+        await update.message.reply_text(
+            f"✅ Backup saved — {res['ts']}\n{', '.join(f'{k}={v}' for k, v in c.items())}\n{pin}"
+        )
+    else:
+        await update.message.reply_text(f"❌ Backup failed: {res.get('reason')}")
+
+
+@admin_only
+async def getbackup_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Send a fresh snapshot .db file to the admin's chat."""
+    await update.message.reply_text("🗄 Preparing snapshot…")
+    res = await send_to_admin(context.bot, update.effective_chat.id)
+    if not res.get("ok"):
+        await update.message.reply_text(f"❌ Could not export: {res.get('reason')}")
+
+
+@admin_only
+async def backupstatus_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    info = await backup_status(context.bot)
+    counts = info.get("local_counts") or {}
+    lines = [
+        "🗄 *Backup status*",
+        f"Enabled: {'yes' if info['enabled'] else 'no'}",
+        f"Channel: `{info['channel']}`",
+        f"Pinned snapshot present: {'yes ✅' if info['has_pinned'] else 'no ❌'}",
+        f"Last backup: {info['last_at']}",
+        f"Interval: every {info['interval_hours']}h · keep {info['retention']}",
+        f"Local rows: {', '.join(f'{k}={v}' for k, v in counts.items()) or 'n/a'}",
+    ]
+    if info.get("channel_error"):
+        lines.append(f"⚠️ Channel error: {info['channel_error']}")
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
+
+
+@admin_only
+async def restore_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Ask for confirmation before a destructive restore from the pinned snapshot."""
+    if not is_backup_enabled():
+        await update.message.reply_text("❌ Backups are disabled.")
+        return
+    keyboard = InlineKeyboardMarkup([[
+        InlineKeyboardButton("⚠️ Yes, restore now", callback_data="backup_restore_confirm"),
+        InlineKeyboardButton("Cancel", callback_data="backup_restore_cancel"),
+    ]])
+    await update.message.reply_text(
+        "⚠️ This will *overwrite the current database* with the latest pinned snapshot. "
+        "Any changes since that snapshot will be lost.\n\nProceed?",
+        reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+@admin_only
+async def restorefrom_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Restore from a specific .db file the admin replies to / sends."""
+    msg = update.message
+    target = msg.reply_to_message or msg
+    doc = target.document if target else None
+    if not doc:
+        await update.message.reply_text(
+            "Reply to a snapshot `.db` document with /restorefrom (or send the file with that caption).",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return
+    await update.message.reply_text("♻️ Restoring from the provided file…")
+    res = await restore_now(context.bot, file_id=doc.file_id)
+    if res.get("ok"):
+        c = res["counts"]
+        await update.message.reply_text(f"✅ Restored. Rows: {', '.join(f'{k}={v}' for k, v in c.items())}")
+    else:
+        await update.message.reply_text(f"❌ Restore failed: {res.get('reason')}")
+
 
 async def admin_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handles admin panel callback queries (menus, stats, broadcasts, user operations)."""
@@ -1534,6 +1775,20 @@ async def admin_callback_handler(update: Update, context: ContextTypes.DEFAULT_T
     elif data == "admin_close":
         await query.message.delete()
 
+    elif data == "backup_restore_cancel":
+        await query.message.edit_text("Restore cancelled.")
+
+    elif data == "backup_restore_confirm":
+        await query.message.edit_text("♻️ Restoring from the latest pinned snapshot…")
+        res = await restore_now(context.bot, file_id=None)
+        if res.get("ok"):
+            c = res["counts"]
+            await query.message.reply_text(
+                f"✅ Restored from pinned snapshot. Rows: {', '.join(f'{k}={v}' for k, v in c.items())}"
+            )
+        else:
+            await query.message.reply_text(f"❌ Restore failed: {res.get('reason')}")
+
 @admin_only
 async def health_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Shows system health status including uptime, DB connection, scheduler, and memory."""
@@ -1598,6 +1853,15 @@ def setup_admin_handlers(app: Application) -> None:
     app.add_handler(CommandHandler("broadcast", broadcast_cmd))
     app.add_handler(CommandHandler("health", health_cmd))
     app.add_handler(CommandHandler("setcommands", setcommands_cmd))
+
+    # Database backup / restore
+    app.add_handler(CommandHandler("backup", backup_cmd))
+    app.add_handler(CommandHandler("createsnapshot", backup_cmd))
+    app.add_handler(CommandHandler("getbackup", getbackup_cmd))
+    app.add_handler(CommandHandler("getsnapshot", getbackup_cmd))
+    app.add_handler(CommandHandler("backupstatus", backupstatus_cmd))
+    app.add_handler(CommandHandler("restore", restore_cmd))
+    app.add_handler(CommandHandler("restorefrom", restorefrom_cmd))
     
     # Prompt 12 commands
     app.add_handler(CommandHandler("uploadvideo", upload_video_cmd))
@@ -1619,6 +1883,11 @@ def setup_admin_handlers(app: Application) -> None:
     app.add_handler(CommandHandler("removeplan", remove_plan_cmd))
     app.add_handler(CommandHandler("restoreplan", restore_plan_cmd))
     app.add_handler(CommandHandler("setqr", set_qr_cmd))
+    app.add_handler(CommandHandler("setbanner", set_banner_cmd))
+    app.add_handler(CommandHandler("adddemo", add_demo_cmd))
+    app.add_handler(CommandHandler("donedemo", done_demo_cmd))
+    app.add_handler(CommandHandler("listdemos", list_demos_cmd))
+    app.add_handler(CommandHandler("cleardemos", clear_demos_cmd))
     app.add_handler(CommandHandler("addcontent", add_content_cmd))
     app.add_handler(CommandHandler("donecontent", done_content_cmd))
     app.add_handler(CommandHandler("listcontent", list_content_cmd))
@@ -1645,7 +1914,7 @@ def setup_admin_handlers(app: Application) -> None:
     app.add_handler(CommandHandler("export", export_cmd))
     
     # Callback query router for admin panel buttons
-    app.add_handler(CallbackQueryHandler(admin_callback_handler, pattern="^(admin_menu|admin_stats|admin_list_paid:|admin_broadcast_init|admin_bc_target:|admin_user_op:|admin_close)"))
+    app.add_handler(CallbackQueryHandler(admin_callback_handler, pattern="^(admin_menu|admin_stats|admin_list_paid:|admin_broadcast_init|admin_bc_target:|admin_user_op:|admin_close|backup_restore_)"))
     
     # Message receiver for broadcast, guided upload and DMs payload capturing
     app.add_handler(MessageHandler(

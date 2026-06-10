@@ -28,6 +28,7 @@ from bot.services.config import get_payment_qr, set_config
 from bot.services.access import has_plan_access, grant_plan_access
 from bot.services.tickets import create_ticket, get_ticket, set_ticket_status
 from bot.services.email import send_payment_proof_email
+from bot.services.backup import schedule_backup_soon
 from bot.services.monitoring import update_last_message_time
 from admin.panel import setup_admin_handlers
 
@@ -265,6 +266,8 @@ async def _handle_review(update: Update, context: ContextTypes.DEFAULT_TYPE, act
     if action == "approve":
         await set_ticket_status(ticket_id, "approved", reviewed_by=admin.id)
         await grant_plan_access(ticket.telegram_id, ticket.plan_id)
+        # A paid customer just got access — back up promptly so it survives a redeploy.
+        schedule_backup_soon(context.bot)
 
         # Notify the buyer with a File-bot deep link to collect content.
         file_link = build_deep_link("file", ticket.plan_id)

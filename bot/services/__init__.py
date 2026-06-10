@@ -8,7 +8,7 @@ from bot.services.access import (
     revoke_plan_access,
 )
 from bot.services.scheduler import start_scheduler, schedule_video_deletion, schedule_demo_expiry
-from bot.services.config import preload_config, get_config, set_config, get_preview_video_id, get_full_video_id, get_video_price, get_payment_qr
+from bot.services.config import preload_config, get_config, set_config, get_preview_video_id, get_full_video_id, get_video_price, get_payment_qr, get_sales_banner_msg_id
 from bot.services.tickets import create_ticket, get_ticket, set_ticket_status, list_pending_tickets
 from bot.services.users import (
     list_paid_users,
@@ -18,6 +18,16 @@ from bot.services.users import (
     is_suspended,
     find_user,
     user_overview,
+)
+from bot.services.backup import (
+    upload_and_pin,
+    send_to_admin,
+    restore_on_startup,
+    restore_now,
+    run_scheduled_backup,
+    schedule_backup_soon,
+    backup_status,
+    is_backup_enabled,
 )
 from bot.services.videos import (
     list_active_videos,
@@ -58,4 +68,10 @@ from bot.services.delivery import (
     store_media_in_channel,
     already_delivered_ids,
     record_delivery,
+)
+from bot.services.demos import (
+    add_plan_demo,
+    list_plan_demos,
+    count_plan_demos,
+    clear_plan_demos,
 )
