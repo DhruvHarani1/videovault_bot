@@ -4,7 +4,7 @@ from logging.handlers import RotatingFileHandler
 import asyncio
 import uuid
 import uvicorn
-from telegram import Update
+from telegram import Update, Bot
 from bot.config import settings
 from bot.models import init_db, seed_legacy_video_if_needed, backfill_plans_phase0
 from bot.services import start_scheduler, preload_config, set_config
@@ -66,6 +66,16 @@ async def _register_command_menus(bot_key, application) -> None:
 async def init_shared_state() -> None:
     """One-time process-wide initialization (DB, seed, backfill, config cache).
     Must run exactly once regardless of how many bot Applications exist."""
+    # Restore the DB from the pinned Telegram snapshot BEFORE the engine is first
+    # used, if the local file is missing/empty (e.g. after a Render redeploy wiped it).
+    try:
+        from bot.services.backup import restore_on_startup
+        restored = await restore_on_startup(settings.PAYMENT_BOT_TOKEN)
+        if restored:
+            logger.info("Database restored from latest Telegram snapshot.")
+    except Exception as e:
+        logger.error(f"Startup restore skipped due to error: {e}", exc_info=True)
+
     logger.info("Initializing database...")
     await init_db()
 
@@ -128,7 +138,19 @@ async def lifespan(app: FastAPI):
 
 
 async def _shutdown_shared() -> None:
-    """Stop scheduler and close the DB pool."""
+    """Best-effort final backup, then stop scheduler and close the DB pool."""
+    # Capture any changes made since the last snapshot before the container dies
+    # (Render sends SIGTERM before a redeploy). Best-effort + bounded so it can't
+    # hang shutdown.
+    try:
+        from bot.services.backup import is_backup_enabled, upload_and_pin
+        if is_backup_enabled():
+            logger.info("Taking a final backup before shutdown...")
+            async with Bot(settings.PAYMENT_BOT_TOKEN) as b:
+                await asyncio.wait_for(upload_and_pin(b), timeout=20)
+    except Exception as e:
+        logger.error(f"Shutdown backup skipped: {e}")
+
     try:
         from bot.services.scheduler import scheduler
         if scheduler.running:

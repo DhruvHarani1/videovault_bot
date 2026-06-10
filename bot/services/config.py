@@ -65,3 +65,12 @@ def get_video_price() -> int:
 def get_payment_qr() -> str:
     """Payment QR file_id/URL — DB-config override of the env default (set via /setqr)."""
     return get_config("PAYMENT_QR_FILE_ID", settings.PAYMENT_QR_FILE_ID)
+
+
+def get_sales_banner_msg_id():
+    """Storage-channel message id of the Sales promo banner (set via /setbanner)."""
+    v = get_config("SALES_BANNER_MSG_ID", "")
+    try:
+        return int(v) if v else None
+    except (ValueError, TypeError):
+        return None

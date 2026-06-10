@@ -5,9 +5,10 @@ Phase 5: manual payment-proof workflow (replaces Razorpay and the legacy library
   "I've Paid"       → bot waits for a screenshot
   screenshot        → create a PaymentTicket, forward proof to admins (with
                       Approve/Reject buttons), and email admins the proof
+                      (this is the ONLY email admins receive)
   Approve           → grant plan access, notify the user with a File-bot deep
-                      link, email admins
-  Reject            → notify the user, email admins
+                      link (no email)
+  Reject            → notify the user with a Try Again button (no email)
 
 The admin panel (CMS, stats, broadcast, etc.) still lives on this bot via
 setup_admin_handlers. The legacy per-video library is intentionally dropped.
@@ -26,7 +27,8 @@ from bot.services.plans import list_active_plans, get_plan
 from bot.services.config import get_payment_qr, set_config
 from bot.services.access import has_plan_access, grant_plan_access
 from bot.services.tickets import create_ticket, get_ticket, set_ticket_status
-from bot.services.email import send_payment_proof_email, send_approval_email, send_rejection_email
+from bot.services.email import send_payment_proof_email
+from bot.services.backup import schedule_backup_soon
 from bot.services.monitoring import update_last_message_time
 from admin.panel import setup_admin_handlers
 
@@ -264,6 +266,8 @@ async def _handle_review(update: Update, context: ContextTypes.DEFAULT_TYPE, act
     if action == "approve":
         await set_ticket_status(ticket_id, "approved", reviewed_by=admin.id)
         await grant_plan_access(ticket.telegram_id, ticket.plan_id)
+        # A paid customer just got access — back up promptly so it survives a redeploy.
+        schedule_backup_soon(context.bot)
 
         # Notify the buyer with a File-bot deep link to collect content.
         file_link = build_deep_link("file", ticket.plan_id)
@@ -282,12 +286,7 @@ async def _handle_review(update: Update, context: ContextTypes.DEFAULT_TYPE, act
             await query.message.edit_caption(caption=f"✅ Ticket #{ticket_id} — APPROVED by {admin.id}\nPlan: {plan_name}")
         except Exception:
             pass
-
-        # Email in the background so the admin's tap returns instantly.
-        _fire(send_approval_email(
-            ticket_id=ticket_id, telegram_id=ticket.telegram_id, username=None,
-            plan_name=plan_name, amount_inr=ticket.amount_inr, reviewed_by=admin.id,
-        ))
+        # No email on manual approval — admins only get the initial payment-proof email.
 
     else:  # reject
         await set_ticket_status(ticket_id, "rejected", reviewed_by=admin.id, reason="Rejected by admin")
@@ -312,13 +311,7 @@ async def _handle_review(update: Update, context: ContextTypes.DEFAULT_TYPE, act
             await query.message.edit_caption(caption=f"❌ Ticket #{ticket_id} — REJECTED by {admin.id}\nPlan: {plan_name}")
         except Exception:
             pass
-
-        # Email in the background so the admin's tap returns instantly and the
-        # user's "Try Again" isn't queued behind SMTP latency.
-        _fire(send_rejection_email(
-            ticket_id=ticket_id, telegram_id=ticket.telegram_id, username=None,
-            plan_name=plan_name, amount_inr=ticket.amount_inr, reviewed_by=admin.id,
-        ))
+        # No email on manual rejection — admins only get the initial payment-proof email.
 
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

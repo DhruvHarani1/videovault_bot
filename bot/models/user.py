@@ -179,6 +179,23 @@ class ContentItem(Base):
         return f"<ContentItem id={self.id} title={self.title} type={self.media_type}>"
 
 
+class PlanDemo(Base):
+    """A demo/preview media item for a plan (multiple allowed: videos and/or photos).
+    Stored in the storage channel so any bot can deliver it via copy_message."""
+    __tablename__ = "plan_demos"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    plan_id: Mapped[str] = mapped_column(String, ForeignKey("plans.id"), nullable=False)
+    storage_msg_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    file_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    media_type: Mapped[str] = mapped_column(String, default="video")  # video/photo/document
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+
+    def __repr__(self):
+        return f"<PlanDemo id={self.id} plan={self.plan_id} type={self.media_type}>"
+
+
 class PlanContent(Base):
     """Many-to-many mapping of plans to the content they include."""
     __tablename__ = "plan_contents"

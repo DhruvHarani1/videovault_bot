@@ -69,6 +69,19 @@ def start_scheduler(bot=None):
             )
             logger.info("Scheduled DB size warning check (every 1 hour).")
 
+            # Periodic DB backup to the Telegram backup channel (free persistence).
+            from bot.services.backup import run_scheduled_backup, is_backup_enabled
+            if is_backup_enabled():
+                scheduler.add_job(
+                    run_scheduled_backup,
+                    trigger="interval",
+                    hours=max(1, settings.BACKUP_INTERVAL_HOURS),
+                    args=[bot],
+                    id="db_backup_job",
+                    replace_existing=True,
+                )
+                logger.info(f"Scheduled DB backup (every {max(1, settings.BACKUP_INTERVAL_HOURS)} hour(s)).")
+
 
 async def delete_preview_message(bot, chat_id: int, message_id: int, session_id: int, video_id: str = "video_001"):
     """Deletes the preview video message and marks it as deleted in the database."""

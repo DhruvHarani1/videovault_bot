@@ -127,6 +127,39 @@ class Settings:
         except ValueError:
             self.STORAGE_CHANNEL_ID = 0
 
+        # ── Database backup/restore (free persistence across Render redeploys) ──
+        # Private channel where DB snapshots are uploaded + pinned. The Payment bot
+        # must be an admin with Post + Pin + Delete rights. Falls back to the
+        # storage channel if unset.
+        try:
+            self.BACKUP_CHANNEL_ID = int(os.getenv("BACKUP_CHANNEL_ID", "0"))
+        except ValueError:
+            self.BACKUP_CHANNEL_ID = 0
+        if not self.BACKUP_CHANNEL_ID:
+            self.BACKUP_CHANNEL_ID = self.STORAGE_CHANNEL_ID
+
+        # Periodic backup cadence (hours) — safety net on top of event-driven backups.
+        try:
+            self.BACKUP_INTERVAL_HOURS = int(os.getenv("BACKUP_INTERVAL_HOURS", "6"))
+        except ValueError:
+            self.BACKUP_INTERVAL_HOURS = 6
+
+        # Auto-restore from the pinned snapshot on startup when the local DB is empty.
+        self.AUTO_RESTORE = os.getenv("AUTO_RESTORE", "true").lower() in ("1", "true", "yes", "on")
+
+        # How many recent snapshots to keep in the backup channel.
+        try:
+            self.BACKUP_RETENTION = int(os.getenv("BACKUP_RETENTION", "5"))
+        except ValueError:
+            self.BACKUP_RETENTION = 5
+
+        # Debounce window (seconds) for event-driven backups — coalesces a burst of
+        # changes into a single snapshot.
+        try:
+            self.BACKUP_DEBOUNCE_SECONDS = int(os.getenv("BACKUP_DEBOUNCE_SECONDS", "30"))
+        except ValueError:
+            self.BACKUP_DEBOUNCE_SECONDS = 30
+
         # Demo content expiry (seconds) for the Demo Bot.
         try:
             self.DEMO_EXPIRY_SECONDS = int(os.getenv("DEMO_EXPIRY_SECONDS", "200"))
