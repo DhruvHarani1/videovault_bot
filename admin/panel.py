@@ -955,15 +955,25 @@ async def clear_demos_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 @admin_only
 async def add_content_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Bulk content upload mode: every video/photo/document sent becomes a content
-    item (title = caption or auto). Exit with /donecontent or /canceladmin."""
-    context.user_data["admin_state"] = "addcontent_bulk"
-    context.user_data["addcontent_count"] = 0
+    """Step 1: pick which plan the uploaded content should be attached to. Each item
+    uploaded next is auto-linked to that plan (no manual /linkcontent needed)."""
+    plans = await list_all_plans()
+    active = [p for p in plans if p.is_active]
+    if not active:
+        # No plans yet — fall back to library-only bulk upload.
+        context.user_data["admin_state"] = "addcontent_bulk"
+        context.user_data["addcontent_plan_id"] = None
+        context.user_data["addcontent_count"] = 0
+        await update.message.reply_text(
+            "📥 No plans yet — uploading to the library only.\n"
+            "Send videos/photos; the caption becomes the title. /donecontent when finished."
+        )
+        return
+    buttons = [[InlineKeyboardButton(f"📦 {p.name} — ₹{p.price_inr}", callback_data=f"addcontent_plan:{p.id}")] for p in active]
+    buttons.append([InlineKeyboardButton("📚 Library only (no plan)", callback_data="addcontent_plan:none")])
     await update.message.reply_text(
-        "📥 *Bulk Content Upload*\n\n"
-        "Send me videos (or photos/documents) one after another. Each becomes a content "
-        "item; the **caption** is used as its title if provided.\n\n"
-        "Send /donecontent when finished, or /canceladmin to abort.",
+        "📥 *Add Content*\n\nWhich plan should this content go to? Pick one, then bulk-upload videos/photos.",
+        reply_markup=InlineKeyboardMarkup(buttons),
         parse_mode=ParseMode.MARKDOWN,
     )
 
@@ -971,8 +981,16 @@ async def add_content_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 @admin_only
 async def done_content_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     n = context.user_data.pop("addcontent_count", 0)
+    plan_id = context.user_data.pop("addcontent_plan_id", None)
     context.user_data.pop("admin_state", None)
-    await update.message.reply_text(f"✅ Done. Added {n} content item(s). Use /linkcontent to attach them to plans.")
+    if plan_id:
+        await update.message.reply_text(
+            f"✅ Done. Added {n} item(s), all linked to `{plan_id}`.", parse_mode=ParseMode.MARKDOWN
+        )
+    else:
+        await update.message.reply_text(
+            f"✅ Done. Added {n} item(s) to the library. Use /linkcontent to attach them to plans."
+        )
     if n:
         schedule_backup_soon(context.bot)
 
@@ -1560,10 +1578,16 @@ async def admin_message_receiver(update: Update, context: ContextTypes.DEFAULT_T
             item = await create_content(
                 title=title, file_id=file_id, media_type=media_type, storage_msg_id=storage_msg_id,
             )
+            # Auto-link to the plan chosen at the start of /addcontent (if any).
+            plan_id = context.user_data.get("addcontent_plan_id")
+            linked_note = ""
+            if plan_id:
+                status = await link_content_to_plan(plan_id, item.id)
+                linked_note = f" → linked to `{plan_id}`" if status == "linked" else f" ({status})"
             context.user_data["addcontent_count"] = context.user_data.get("addcontent_count", 0) + 1
             warn = "" if storage_msg_id else "\n⚠️ Not copied to the library channel — check the bot is an admin there."
             await update.message.reply_text(
-                f"✅ Saved `{item.id}` — {_md(title)}.{warn} Send more, or /donecontent.",
+                f"✅ Saved `{item.id}`{linked_note}.{warn} Send more, or /donecontent.",
                 parse_mode=ParseMode.MARKDOWN,
             )
         except Exception as e:
@@ -1775,6 +1799,26 @@ async def admin_callback_handler(update: Update, context: ContextTypes.DEFAULT_T
     elif data == "admin_close":
         await query.message.delete()
 
+    elif data.startswith("addcontent_plan:"):
+        pid = data.split(":", 1)[1]
+        plan_id = None if pid == "none" else pid
+        context.user_data["admin_state"] = "addcontent_bulk"
+        context.user_data["addcontent_plan_id"] = plan_id
+        context.user_data["addcontent_count"] = 0
+        if plan_id:
+            plan = await get_plan(plan_id)
+            label = f"*{_md(plan.name)}* (`{plan_id}`)" if plan else f"`{plan_id}`"
+            await query.message.edit_text(
+                f"📥 Uploading to {label}.\n\nSend videos/photos one after another — each is "
+                f"auto-linked to this plan. The caption becomes the title.\n\nSend /donecontent when finished.",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        else:
+            await query.message.edit_text(
+                "📥 Uploading to the library only (no plan).\n\nSend videos/photos; "
+                "caption becomes the title. /donecontent when finished."
+            )
+
     elif data == "backup_restore_cancel":
         await query.message.edit_text("Restore cancelled.")
 
@@ -1914,7 +1958,7 @@ def setup_admin_handlers(app: Application) -> None:
     app.add_handler(CommandHandler("export", export_cmd))
     
     # Callback query router for admin panel buttons
-    app.add_handler(CallbackQueryHandler(admin_callback_handler, pattern="^(admin_menu|admin_stats|admin_list_paid:|admin_broadcast_init|admin_bc_target:|admin_user_op:|admin_close|backup_restore_)"))
+    app.add_handler(CallbackQueryHandler(admin_callback_handler, pattern="^(admin_menu|admin_stats|admin_list_paid:|admin_broadcast_init|admin_bc_target:|admin_user_op:|admin_close|backup_restore_|addcontent_plan:)"))
     
     # Message receiver for broadcast, guided upload and DMs payload capturing
     app.add_handler(MessageHandler(
